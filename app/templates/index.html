@@ -249,11 +249,45 @@
                 </div>
             </div>
 
-            <div class="modal-body-section" id="modal-body">
-                <!-- 포스터 이미지 또는 구조화된 테이블 렌더링 -->
+            <!-- 통합 스크롤 영역 (원문 우선 노출 & 하단 후기 연계) -->
+            <div class="modal-scrollable-body">
+                <div class="modal-body-section" id="modal-body">
+                    <!-- 포스터 이미지 또는 구조화된 테이블 렌더링 -->
+                </div>
+
+                <!-- 생생 꿀팁 & 후기 댓글 섹션 (독립 모듈) -->
+                <div class="modal-reviews-section">
+                    <div class="reviews-header">
+                        <h3 class="reviews-title">
+                            <i data-lucide="message-square" class="icon-sm"></i> 생생 꿀팁 & 후기 <span id="modal-review-count" class="badge-review-count">0</span>
+                        </h3>
+                        <span class="reviews-sub">주차, 수유실 팁이나 월령별 생생한 후기를 남겨보세요</span>
+                    </div>
+
+                    <!-- 후기 작성 폼 -->
+                    <form id="review-form" class="review-write-box">
+                        <div class="review-inputs-row">
+                            <input type="text" id="review-nickname" placeholder="닉네임 (예: 광진맘)" maxlength="20" required />
+                            <input type="password" id="review-password" placeholder="삭제용 비밀번호 4자리" maxlength="10" required />
+                        </div>
+                        <div class="review-content-row">
+                            <textarea id="review-content" placeholder="주차 팁이나 아기 월령별 생생한 후기를 공유해주세요 :)" rows="2" required></textarea>
+                            <button type="submit" class="btn btn-primary btn-sm btn-submit-review" id="btn-submit-review">
+                                <i data-lucide="send" class="icon-xs"></i> 등록
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- 후기 목록 컨테이너 -->
+                    <div id="reviews-list-container" class="reviews-list">
+                        <!-- 후기 카드들이 동적으로 렌더링됩니다 -->
+                    </div>
+                </div>
             </div>
 
+
             <div class="modal-footer-section">
+
                 <div class="modal-footer-info">
                     <span>* 신청은 원본 기관 사이트에서 직접 진행됩니다.</span>
                 </div>
@@ -269,9 +303,30 @@
         </div>
     </div>
 
+    <!-- 댓글 삭제 비밀번호 확인 팝업 (디자인 통일) -->
+    <div class="modal-backdrop" id="delete-confirm-modal" style="display: none; z-index: 1100;">
+        <div class="dialog-window">
+            <div class="dialog-header">
+                <div class="dialog-icon-wrap">
+                    <i data-lucide="lock" class="dialog-icon"></i>
+                </div>
+                <h3 class="dialog-title">댓글 삭제</h3>
+                <p class="dialog-desc">작성 시 설정한 4자리 비밀번호를 입력해주세요.</p>
+            </div>
+            <form id="delete-confirm-form" class="dialog-form">
+                <input type="password" id="delete-confirm-password" placeholder="비밀번호 4자리" maxlength="10" inputmode="numeric" required />
+                <div class="dialog-actions">
+                    <button type="button" class="btn btn-outline" id="btn-cancel-delete">취소</button>
+                    <button type="submit" class="btn btn-danger" id="btn-confirm-delete">삭제하기</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- 하단 토스트 알림 -->
     <div class="toast" id="toast-message"></div>
 
     <script src="/static/js/app.js"></script>
 </body>
+
 </html>

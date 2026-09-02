@@ -906,16 +906,22 @@ body {
   flex-wrap: wrap;
 }
 
-.modal-body-section {
-  padding: 20px 26px;
-  overflow-y: auto;
+.modal-scrollable-body {
   flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-body-section {
+  padding: 22px 26px 14px;
 }
 
 .poster-viewer {
   width: 100%;
-  max-height: 400px;
-  object-fit: cover;
+  max-height: 480px;
+  object-fit: contain;
+  background: #f8fafc;
   border-radius: var(--radius-sm);
   margin-bottom: 18px;
   border: 1px solid var(--border-color);
@@ -944,10 +950,187 @@ body {
   color: #334155;
 }
 
+/* ==========================================
+   후기 & 꿀팁 댓글 섹션 (독립 모듈)
+   ========================================== */
+.modal-reviews-section {
+  padding: 20px 26px 24px;
+  border-top: 1px solid var(--border-color);
+  background: #fafcff;
+}
+
+
+.reviews-header {
+  margin-bottom: 12px;
+}
+
+.reviews-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.badge-review-count {
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--primary-light);
+  color: var(--primary);
+  padding: 1px 7px;
+  border-radius: var(--radius-full);
+}
+
+.reviews-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.review-write-box {
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.review-inputs-row {
+  display: flex;
+  gap: 8px;
+}
+
+.review-inputs-row input {
+  flex: 1;
+  padding: 7px 10px;
+  font-size: 12.5px;
+  font-family: inherit;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: #ffffff;
+  outline: none;
+}
+
+.review-inputs-row input:focus {
+  border-color: var(--primary);
+}
+
+.review-content-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.review-content-row textarea {
+  flex: 1;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: #ffffff;
+  resize: none;
+  outline: none;
+  line-height: 1.4;
+}
+
+.review-content-row textarea:focus {
+  border-color: var(--primary);
+}
+
+.btn-submit-review {
+  height: 40px;
+  padding: 0 14px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.review-empty-box {
+  padding: 16px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  background: var(--bg-main);
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border-color);
+}
+
+.review-item {
+  background: var(--bg-main);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  transition: background 0.15s ease;
+}
+
+.review-item:hover {
+  background: #f1f5f9;
+}
+
+.review-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+  font-size: 12px;
+}
+
+.review-author {
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.review-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.review-date {
+  color: var(--text-light);
+  font-size: 11px;
+}
+
+.btn-review-delete {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.btn-review-delete:hover {
+  color: #dc2626;
+}
+
+.review-item-content {
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
 .modal-footer-section {
   padding: 16px 26px;
   border-top: 1px solid var(--border-color);
   background: var(--bg-main);
+
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -998,6 +1181,100 @@ body {
   margin-bottom: 16px;
 }
 
+/* ==========================================
+   통일된 인앱 다이얼로그 팝업 (비밀번호 확인 등)
+   ========================================== */
+.dialog-window {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  max-width: 360px;
+  width: 90%;
+  padding: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  animation: dialogPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dialogPop {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.dialog-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  background: #fef2f2;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+}
+
+.dialog-icon {
+  width: 22px;
+  height: 22px;
+  stroke-width: 2.2;
+}
+
+.dialog-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+
+.dialog-desc {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dialog-form input {
+  padding: 10px 14px;
+  font-size: 14px;
+  text-align: center;
+  letter-spacing: 4px;
+  font-family: inherit;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  outline: none;
+  background: var(--bg-main);
+}
+
+.dialog-form input:focus {
+  border-color: var(--primary);
+  background: #ffffff;
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.dialog-actions .btn {
+  flex: 1;
+  padding: 9px;
+  font-size: 13.5px;
+}
+
+.btn-danger {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
 .toast {
   position: fixed;
   bottom: 24px;
@@ -1020,6 +1297,7 @@ body {
   transform: translateX(-50%) translateY(0);
   opacity: 1;
 }
+
 
 /* ==========================================
    반응형

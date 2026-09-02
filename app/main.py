@@ -137,6 +137,51 @@ async def sync_data(db: Session = Depends(get_db)):
         "message": f"동기화 완료: {res['total_programs']}개 프로그램 등록/갱신됨"
     }
 
+# ==========================================
+# 후기 / 꿀팁 댓글 API (독립 모듈)
+# ==========================================
+from app.models import Review
+from app.schemas import ReviewCreate, ReviewResponse, ReviewDelete
+
+@app.get("/api/programs/{program_id}/reviews", response_model=list[ReviewResponse])
+def get_program_reviews(program_id: int, db: Session = Depends(get_db)):
+    return db.query(Review).filter(Review.program_id == program_id).order_by(Review.created_at.desc()).all()
+
+@app.post("/api/programs/{program_id}/reviews", response_model=ReviewResponse)
+def create_program_review(program_id: int, review_in: ReviewCreate, db: Session = Depends(get_db)):
+    # 프로그램 존재 여부 확인
+    prog = db.query(Program).filter(Program.id == program_id).first()
+    if not prog:
+        raise HTTPException(status_code=404, detail="Program not found")
+    
+    if not review_in.nickname.strip() or not review_in.content.strip():
+        raise HTTPException(status_code=400, detail="닉네임과 내용을 입력해주세요.")
+
+    new_review = Review(
+        program_id=program_id,
+        nickname=review_in.nickname.strip()[:20],
+        password=review_in.password.strip(),
+        content=review_in.content.strip()
+    )
+    db.add(new_review)
+    db.commit()
+    db.refresh(new_review)
+    return new_review
+
+@app.post("/api/reviews/{review_id}/delete")
+def delete_program_review(review_id: int, delete_in: ReviewDelete, db: Session = Depends(get_db)):
+    review = db.query(Review).filter(Review.id == review_id).first()
+    if not review:
+        raise HTTPException(status_code=404, detail="후기를 찾을 수 없습니다.")
+    
+    if review.password != delete_in.password.strip():
+        raise HTTPException(status_code=403, detail="비밀번호가 일치하지 않습니다.")
+    
+    db.delete(review)
+    db.commit()
+    return {"status": "success", "message": "삭제되었습니다."}
+
 @app.get("/health")
 def health_check():
     return {"status": "ok", "service": "childcare-program-notifier"}
+

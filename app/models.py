@@ -32,3 +32,15 @@ class Program(Base):
     
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+
+class Review(Base):
+    __tablename__ = "reviews"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    program_id = Column(Integer, nullable=False, index=True)
+    nickname = Column(String(50), nullable=False)
+    password = Column(String(50), nullable=False) # 삭제용 4자리 비밀번호
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+

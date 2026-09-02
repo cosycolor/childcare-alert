@@ -37,3 +37,22 @@ class SyncResult(BaseModel):
     total_updated: int
     errors: list[str] = []
     message: str
+
+class ReviewCreate(BaseModel):
+    nickname: str
+    password: str
+    content: str
+
+class ReviewResponse(BaseModel):
+    id: int
+    program_id: int
+    nickname: str
+    content: str
+    created_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class ReviewDelete(BaseModel):
+    password: str
+

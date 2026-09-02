@@ -366,9 +366,16 @@
     gap: 8px;
   }
 
-  .modal-body-section {
-    padding: 14px 18px;
+  .modal-scrollable-body {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
+
+  .modal-body-section {
+    padding: 14px 16px;
+  }
+
 
   .detail-table {
     font-size: 12.5px;
@@ -383,11 +390,40 @@
     padding: 8px 10px;
   }
 
+  .modal-reviews-section {
+    padding: 14px 18px 16px;
+  }
+
+  .review-write-box {
+    padding: 10px;
+  }
+
+  .review-inputs-row {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .review-content-row {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .review-content-row textarea {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .btn-submit-review {
+    width: 100%;
+    height: 38px;
+  }
+
   .modal-footer-section {
     padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
     flex-direction: column;
     gap: 10px;
   }
+
 
   .modal-footer-info {
     text-align: center;

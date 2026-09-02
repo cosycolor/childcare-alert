@@ -539,8 +539,15 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.modalBody.innerHTML = bodyHtml;
         elements.btnModalApply.href = prog.origin_url;
 
+        // 해당 프로그램 후기 불러오기
+        fetchReviews(prog.id);
+
         elements.modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
+
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
     }
 
     function closeModal() {
@@ -549,12 +556,180 @@ document.addEventListener('DOMContentLoaded', () => {
         state.selectedProgram = null;
     }
 
+    // ==========================================
+    // 후기 & 꿀팁 댓글 시스템 (독립 모듈)
+    // ==========================================
+    const reviewForm = document.getElementById('review-form');
+    const reviewsListContainer = document.getElementById('reviews-list-container');
+    const modalReviewCount = document.getElementById('modal-review-count');
+
+    if (reviewForm) {
+        reviewForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!state.selectedProgram) return;
+
+            const nicknameInput = document.getElementById('review-nickname');
+            const passwordInput = document.getElementById('review-password');
+            const contentInput = document.getElementById('review-content');
+
+            const payload = {
+                nickname: nicknameInput.value.trim(),
+                password: passwordInput.value.trim(),
+                content: contentInput.value.trim()
+            };
+
+            if (!payload.nickname || !payload.password || !payload.content) {
+                showToast('모든 항목을 입력해주세요.');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/programs/${state.selectedProgram.id}/reviews`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (res.ok) {
+                    showToast('소중한 후기/꿀팁이 등록되었습니다! 🎉');
+                    contentInput.value = '';
+                    passwordInput.value = '';
+                    fetchReviews(state.selectedProgram.id);
+                } else {
+                    const err = await res.json();
+                    showToast(err.detail || '후기 등록에 실패했습니다.');
+                }
+            } catch (err) {
+                showToast('네트워크 오류가 발생했습니다.');
+            }
+        });
+    }
+
+    async function fetchReviews(programId) {
+        if (!reviewsListContainer) return;
+        reviewsListContainer.innerHTML = '<div style="font-size:12.5px; color:var(--text-muted); padding:10px 0;">후기를 불러오는 중...</div>';
+
+        try {
+            const res = await fetch(`/api/programs/${programId}/reviews`);
+            if (res.ok) {
+                const reviews = await res.json();
+                if (modalReviewCount) {
+                    modalReviewCount.textContent = reviews.length;
+                }
+
+                if (reviews.length === 0) {
+                    reviewsListContainer.innerHTML = `
+                        <div class="review-empty-box">
+                            아직 등록된 후기나 꿀팁이 없습니다. 첫 번째 꿀팁을 남겨보세요! ✨
+                        </div>
+                    `;
+                    return;
+                }
+
+                reviewsListContainer.innerHTML = reviews.map(r => {
+                    const dateStr = r.created_at ? r.created_at.split('T')[0] : '';
+                    return `
+                        <div class="review-item" data-review-id="${r.id}">
+                            <div class="review-item-header">
+                                <span class="review-author">
+                                    <i data-lucide="user" class="icon-xs"></i> <strong>${r.nickname}</strong>
+                                </span>
+                                <div class="review-meta">
+                                    <span class="review-date">${dateStr}</span>
+                                    <button class="btn-review-delete" onclick="window.deleteReviewItem(${r.id})">삭제</button>
+                                </div>
+                            </div>
+                            <div class="review-item-content">${escapeHtml(r.content)}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                if (window.lucide) {
+                    window.lucide.createIcons();
+                }
+            }
+        } catch (e) {
+            reviewsListContainer.innerHTML = '<div style="font-size:12px; color:var(--text-muted);">후기를 불러오지 못했습니다.</div>';
+        }
+    }
+
+    // 삭제 모달 상태 관리
+    let pendingDeleteReviewId = null;
+    const deleteConfirmModal = document.getElementById('delete-confirm-modal');
+    const deleteConfirmForm = document.getElementById('delete-confirm-form');
+    const deleteConfirmPassword = document.getElementById('delete-confirm-password');
+    const btnCancelDelete = document.getElementById('btn-cancel-delete');
+
+    window.deleteReviewItem = function(reviewId) {
+        pendingDeleteReviewId = reviewId;
+        if (deleteConfirmPassword) deleteConfirmPassword.value = '';
+        if (deleteConfirmModal) {
+            deleteConfirmModal.style.display = 'flex';
+            setTimeout(() => deleteConfirmPassword?.focus(), 100);
+        }
+    };
+
+    if (btnCancelDelete) {
+        btnCancelDelete.addEventListener('click', () => {
+            if (deleteConfirmModal) deleteConfirmModal.style.display = 'none';
+            pendingDeleteReviewId = null;
+        });
+    }
+
+    if (deleteConfirmForm) {
+        deleteConfirmForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!pendingDeleteReviewId) return;
+
+            const password = deleteConfirmPassword ? deleteConfirmPassword.value.trim() : '';
+            if (!password) {
+                showToast('비밀번호를 입력해주세요.');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/reviews/${pendingDeleteReviewId}/delete`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                if (res.ok) {
+                    showToast('댓글이 삭제되었습니다.');
+                    if (deleteConfirmModal) deleteConfirmModal.style.display = 'none';
+                    pendingDeleteReviewId = null;
+                    if (state.selectedProgram) {
+                        fetchReviews(state.selectedProgram.id);
+                    }
+                } else {
+                    const err = await res.json();
+                    showToast(err.detail || '비밀번호가 일치하지 않습니다.');
+                }
+            } catch (e) {
+                showToast('삭제 중 오류가 발생했습니다.');
+            }
+        });
+    }
+
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;')
+            .replace(/\n/g, '<br/>');
+    }
+
     // 토스트 메시지
     function showToast(msg) {
         elements.toast.textContent = msg;
         elements.toast.classList.add('show');
         setTimeout(() => {
             elements.toast.classList.remove('show');
-        }, 3000);
+        }, 2500);
     }
 });
+
