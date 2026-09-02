@@ -102,8 +102,12 @@ class SeongdongCareScraper(BaseScraper):
                     elif "마감" in raw_status or "종료" in raw_status:
                         status = "마감"
 
-                    apply_start = apply_period.split("~")[0].strip() if "~" in apply_period else apply_period
-                    apply_end = apply_period.split("~")[1].strip() if "~" in apply_period else ""
+                    from app.scrapers.base import clean_datetime_text
+
+                    clean_event_time = clean_datetime_text(event_time)
+                    clean_apply_period = clean_datetime_text(apply_period)
+                    apply_start = clean_apply_period.split("~")[0].strip() if "~" in clean_apply_period else clean_apply_period
+                    apply_end = clean_apply_period.split("~")[1].strip() if "~" in clean_apply_period else ""
 
                     results.append({
                         "institution_name": self.name,
@@ -114,7 +118,7 @@ class SeongdongCareScraper(BaseScraper):
                         "target_desc": target_desc,
                         "apply_start_at": apply_start,
                         "apply_end_at": apply_end,
-                        "event_date_desc": event_time,
+                        "event_date_desc": clean_event_time,
                         "capacity_info": capacity,
                         "fee": "무료",
                         "location": "성동구육아종합지원센터 (왕십리로 241)",
@@ -124,14 +128,15 @@ class SeongdongCareScraper(BaseScraper):
                         "detail_content": json.dumps({
                             "프로그램명": title,
                             "대상": target_desc,
-                            "일시": event_time,
-                            "신청기간": apply_period,
+                            "일시": clean_event_time,
+                            "신청기간": clean_apply_period,
                             "정원/접수인원": capacity,
                             "신청상태": raw_status,
                             "신청기관": "성동구육아종합지원센터"
                         }, ensure_ascii=False),
                         "origin_url": detail_url
                     })
+
             except Exception as e:
                 logger.error(f"Seongdong care live scrape error: {e}")
 

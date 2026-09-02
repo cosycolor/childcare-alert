@@ -61,7 +61,45 @@ def is_for_parent_and_child(title: str, target_desc: str = "", extra_text: str =
 
     return True
 
+
+def clean_datetime_text(text: str) -> str:
+    """
+    날짜/일시 문자열에서 날짜와 시간 사이 공백 보정 및 불필요한 줄바꿈/대시 제거.
+    예: '2026-09-1116:20~17:10' -> '2026-09-11 16:20 ~ 17:10'
+    예: '2026-10-01   -' -> '2026-10-01'
+    """
+    if not text:
+        return ""
+    
+    cleaned = text
+    # 1. 날짜와 시작 시간 붙어있는 경우 분리 (예: 2026-09-1116:20 -> 2026-09-11 16:20)
+    cleaned = re.sub(r'(\d{4}[-.]\d{2}[-.]\d{2})\s*(\d{2}:\d{2})', r'\1 \2', cleaned)
+    
+    # 2. 물결표(~) 앞뒤 공백 정돈
+    cleaned = re.sub(r'\s*~\s*', ' ~ ', cleaned)
+    
+    # 3. 연속된 공백, 줄바꿈, 탭을 단일 공백으로 치환
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    
+    # 4. 끝부분의 불필요한 대시나 기호 제거 (예: '2026-10-01 -' -> '2026-10-01')
+    cleaned = re.sub(r'\s*[-~]\s*$', '', cleaned).strip()
+    
+    return cleaned
+
+
 class BaseScraper(ABC):
+    def __init__(self, name: str, district: str, category: str):
+        self.name = name
+        self.district = district
+        self.category = category
+
+    @abstractmethod
+    async def scrape(self) -> List[Dict[str, Any]]:
+        """
+        크롤링 수행 후 정규화된 Program 딕셔너리 리스트 반환
+        """
+        pass
+
     @property
     @abstractmethod
     def name(self) -> str:
@@ -78,7 +116,6 @@ class BaseScraper(ABC):
     @abstractmethod
     def category(self) -> str:
         """기관 카테고리 (육아종합지원센터, 구립도서관, 가족센터 등)"""
-        pass
 
     @abstractmethod
     async def scrape(self) -> List[Dict[str, Any]]:

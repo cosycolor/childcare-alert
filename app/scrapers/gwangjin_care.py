@@ -131,23 +131,21 @@ class GwangjinCareScraper(BaseScraper):
                     detail_data = self._fetch_detail_info(detail_url)
                     
                     # 1. 신청기간 (상세페이지의 '신청기간' 우선)
-                    exact_apply_period = detail_data.get("신청기간", period)
+                    exact_apply_period = clean_datetime_text(detail_data.get("신청기간", period))
                     apply_start = exact_apply_period.split("~")[0].strip() if "~" in exact_apply_period else exact_apply_period
                     apply_end = exact_apply_period.split("~")[1].strip() if "~" in exact_apply_period else ""
 
                     # 2. 진행일시 (상세페이지의 '일시' 우선)
-                    event_date = detail_data.get("일시", period or "상세 페이지 참조").strip()
+                    event_date = clean_datetime_text(detail_data.get("일시", period or "상세 페이지 참조"))
                     
                     # 3. 정원 및 대상
                     raw_cap = detail_data.get("신청인원 / 정원", detail_data.get("신청인원/정원", detail_data.get("정원", "")))
-                    waiting_cap = detail_data.get("대기", "")
                     if raw_cap:
                         capacity = f"{raw_cap} (마감)" if status == "마감" else raw_cap
                     else:
                         capacity = "선착순 모집"
 
                     target_desc = detail_data.get("대상", "광진구 관내 영유아 및 양육자")
-
 
                     # 보육교사/어린이집 전용 공고 필터링 (부모/영유아 대상만 허용)
                     from app.scrapers.base import is_for_parent_and_child
@@ -158,6 +156,14 @@ class GwangjinCareScraper(BaseScraper):
                     # 이미 중복된 공고인지 확인
                     if any(r["origin_url"] == detail_url for r in results):
                         continue
+
+                    # 상세 데이터 내 일시/신청기간도 정제
+                    cleaned_detail_data = {}
+                    for k, v in detail_data.items():
+                        if k in ["일시", "신청기간", "기간"]:
+                            cleaned_detail_data[k] = clean_datetime_text(v)
+                        else:
+                            cleaned_detail_data[k] = v
 
                     results.append({
                         "institution_name": self.name,
@@ -171,18 +177,14 @@ class GwangjinCareScraper(BaseScraper):
                         "event_date_desc": event_date,
                         "capacity_info": capacity,
                         "fee": "무료",
-                        "location": "광진구육아종합지원센터",
+                        "location": "광진구육아종합지원센터 (군자동)",
                         "status": status,
-                        "detail_type": "HYBRID" if img_url else "TABLE_TEXT",
-                        "image_url": img_url,
-                        "detail_content": json.dumps(detail_data if detail_data else {
-                            "프로그램명": title,
-                            "일시": event_date,
-                            "신청기간": exact_apply_period,
-                            "상태": status
-                        }, ensure_ascii=False),
+                        "detail_type": "TABLE_TEXT",
+                        "image_url": None,
+                        "detail_content": json.dumps(cleaned_detail_data, ensure_ascii=False) if cleaned_detail_data else None,
                         "origin_url": detail_url
                     })
+
 
             except Exception as e:
                 logger.error(f"Gwangjin care live scrape error for pno={pno}: {e}")
