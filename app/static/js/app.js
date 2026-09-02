@@ -395,19 +395,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 return p.apply_start_at && p.apply_start_at.startsWith(dateStr);
             });
 
+            // 캘린더 배지용 제목 간소화 함수 ([기관명] 제거 및 글자 수 슬라이스)
+            const formatBadgeTitle = (rawTitle) => {
+                let clean = rawTitle.replace(/\[.*?\]/g, '').trim();
+                return clean || rawTitle;
+            };
+
             gridHtml += `
                 <div class="cal-day-cell ${isToday ? 'today' : ''}" data-date="${dateStr}">
                     <span class="cal-day-number">${day}</span>
                     <div class="cal-events-list">
-                        ${dayEvents.slice(0, 3).map(ev => `
+                        ${dayEvents.slice(0, 2).map(ev => `
                             <div class="cal-event-badge ${ev.status === '접수중' ? 'open' : 'upcoming'}" title="${ev.institution_name}: ${ev.title}">
-                                ${ev.title}
+                                ${formatBadgeTitle(ev.title)}
                             </div>
                         `).join('')}
-                        ${dayEvents.length > 3 ? `<span style="font-size:10px; color:var(--text-muted);">+${dayEvents.length - 3}건 더보기</span>` : ''}
+                        ${dayEvents.length > 2 ? `<span class="cal-more-badge">+${dayEvents.length - 2}건</span>` : ''}
                     </div>
                 </div>
             `;
+
         }
 
         elements.calDaysGrid.innerHTML = gridHtml;
