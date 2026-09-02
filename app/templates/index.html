@@ -4,26 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>아이랑 모아 - 0~36개월 육아 프로그램 통합 알림 서비스</title>
-    <meta name="description" content="광진구·성동구 육아종합지원센터, 구립도서관, 가족센터의 0~36개월 영유아 프로그램 정보를 한 곳에서 확인하고 바로 신청하세요.">
+    <meta name="description" content="광진구·성동구 육아종합지원센터, 구립도서관, 보건소, 문화센터의 0~36개월 영유아 프로그램 정보를 한 곳에서 확인하고 바로 신청하세요.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
+    <!-- Lucide Icons (모던 라인 아이콘) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
     <!-- 상단 글로벌 네비게이션 헤더 -->
     <header class="app-header">
         <div class="container header-inner">
             <div class="logo-area">
-                <div class="logo-icon">🍼</div>
+                <div class="logo-icon">
+                    <i data-lucide="sparkles" class="icon-brand"></i>
+                </div>
                 <div class="logo-text">
                     <h1 class="service-title">아이랑 모아 <span class="badge-pilot">광진 · 성동 파일럿</span></h1>
-                    <p class="service-sub">0~36개월 아기를 위한 공공 육아 프로그램 캘린더 & 통합 알림</p>
+                    <p class="service-sub">0~36개월 아기를 위한 공공/민간 육아 프로그램 캘린더 & 통합 알림</p>
                 </div>
             </div>
             <div class="header-actions">
                 <button id="btn-sync" class="btn btn-outline btn-sm">
-                    <span class="icon">🔄</span> 최신 정보 갱신
+                    <i data-lucide="refresh-cw" class="icon-sm"></i> 최신 정보 갱신
                 </button>
             </div>
         </div>
@@ -34,28 +38,36 @@
         <!-- 하이라이트 통계 요약 배너 -->
         <section class="stats-banner" id="stats-banner">
             <div class="stat-card stat-primary">
-                <div class="stat-icon">✨</div>
+                <div class="stat-icon">
+                    <i data-lucide="flame" class="icon-stat-primary"></i>
+                </div>
                 <div class="stat-info">
                     <span class="stat-label">지금 접수중인 프로그램</span>
                     <span class="stat-value" id="stat-open">0건</span>
                 </div>
             </div>
             <div class="stat-card stat-secondary">
-                <div class="stat-icon">⏰</div>
+                <div class="stat-icon">
+                    <i data-lucide="clock" class="icon-stat-secondary"></i>
+                </div>
                 <div class="stat-info">
                     <span class="stat-label">곧 열리는 접수예정</span>
                     <span class="stat-value" id="stat-upcoming">0건</span>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">📍</div>
+                <div class="stat-icon">
+                    <i data-lucide="map-pin" class="icon-stat-neutral"></i>
+                </div>
                 <div class="stat-info">
                     <span class="stat-label">광진구 프로그램</span>
                     <span class="stat-value" id="stat-gwangjin">0건</span>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">🌿</div>
+                <div class="stat-icon">
+                    <i data-lucide="compass" class="icon-stat-neutral"></i>
+                </div>
                 <div class="stat-info">
                     <span class="stat-label">성동구 프로그램</span>
                     <span class="stat-value" id="stat-seongdong">0건</span>
@@ -69,18 +81,20 @@
                 <div class="filter-top-row">
                     <!-- 검색 바 -->
                     <div class="search-box">
-                        <span class="search-icon">🔍</span>
-                        <input type="text" id="search-input" placeholder="프로그램명, 기관명, 교육내용 검색 (예: 북스타트, 마사지)" />
-                        <button id="search-clear" class="btn-clear" style="display:none;">✕</button>
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" id="search-input" placeholder="프로그램명, 기관명, 교육내용 검색 (예: 북스타트, 마사지, 트니트니)" />
+                        <button id="search-clear" class="btn-clear" style="display:none;">
+                            <i data-lucide="x" class="icon-xs"></i>
+                        </button>
                     </div>
 
                     <!-- 뷰 모드 스위처 (리스트 / 캘린더) -->
                     <div class="view-switchers">
                         <button id="view-list-btn" class="btn-view active" title="목록형 카드 보기">
-                            <span class="icon">📋</span> 리스트
+                            <i data-lucide="layout-grid" class="icon-view"></i> 리스트
                         </button>
                         <button id="view-calendar-btn" class="btn-view" title="월간 캘린더 보기">
-                            <span class="icon">📅</span> 캘린더
+                            <i data-lucide="calendar" class="icon-view"></i> 캘린더
                         </button>
                     </div>
                 </div>
@@ -113,26 +127,44 @@
                         <span class="filter-title">기관:</span>
                         <div class="chips-list" id="filter-category">
                             <button class="chip active" data-value="전체">전체</button>
-                            <button class="chip" data-value="공공놀이터/키즈카페">🎡 키즈카페/놀이터</button>
-                            <button class="chip" data-value="보건소">🏥 보건소</button>
-                            <button class="chip" data-value="숲체험/공원">🌳 숲체험/공원</button>
-                            <button class="chip" data-value="백화점/마트 문센">🛍️ 백화점/마트 문센</button>
-                            <button class="chip" data-value="육아종합지원센터">육아종합지원센터</button>
-                            <button class="chip" data-value="구립도서관">구립도서관</button>
-                            <button class="chip" data-value="가족센터">가족센터</button>
-                            <button class="chip" data-value="시간제보육">시간제보육</button>
+                            <button class="chip" data-value="공공놀이터/키즈카페">
+                                <i data-lucide="smile" class="icon-chip"></i> 키즈카페/놀이터
+                            </button>
+                            <button class="chip" data-value="보건소">
+                                <i data-lucide="heart-pulse" class="icon-chip"></i> 보건소
+                            </button>
+                            <button class="chip" data-value="숲체험/공원">
+                                <i data-lucide="trees" class="icon-chip"></i> 숲체험/공원
+                            </button>
+                            <button class="chip" data-value="백화점/마트 문센">
+                                <i data-lucide="shopping-bag" class="icon-chip"></i> 백화점/마트 문센
+                            </button>
+                            <button class="chip" data-value="육아종합지원센터">
+                                <i data-lucide="building-2" class="icon-chip"></i> 육아종합지원센터
+                            </button>
+                            <button class="chip" data-value="구립도서관">
+                                <i data-lucide="book-open" class="icon-chip"></i> 구립도서관
+                            </button>
+                            <button class="chip" data-value="가족센터">
+                                <i data-lucide="users" class="icon-chip"></i> 가족센터
+                            </button>
+                            <button class="chip" data-value="시간제보육">
+                                <i data-lucide="hourglass" class="icon-chip"></i> 시간제보육
+                            </button>
                         </div>
                     </div>
-
-
 
                     <!-- 접수 상태 필터 -->
                     <div class="filter-group">
                         <span class="filter-title">접수 상태:</span>
                         <div class="chips-list" id="filter-status">
                             <button class="chip active" data-value="전체">전체</button>
-                            <button class="chip" data-value="접수중">접수중 🔥</button>
-                            <button class="chip" data-value="접수예정">접수예정 ⏰</button>
+                            <button class="chip" data-value="접수중">
+                                <i data-lucide="check-circle" class="icon-chip icon-open"></i> 접수중
+                            </button>
+                            <button class="chip" data-value="접수예정">
+                                <i data-lucide="clock" class="icon-chip icon-upcoming"></i> 접수예정
+                            </button>
                             <button class="chip" data-value="마감">마감</button>
                         </div>
                     </div>
@@ -144,7 +176,7 @@
         <section id="list-view-container" class="content-view">
             <div class="results-header">
                 <div class="results-count">
-                    총 <strong id="result-total-count">0</strong>개의 프로그램
+                    총 <strong id="result-total-count">0</strong>개의 영유아 프로그램
                 </div>
                 <div class="results-notice">
                     * 원본 기관의 상황에 따라 조기 마감될 수 있습니다.
@@ -157,10 +189,14 @@
 
             <!-- 검색 결과 없음 상태 -->
             <div class="empty-state" id="empty-state" style="display: none;">
-                <div class="empty-icon">🔍</div>
+                <div class="empty-icon">
+                    <i data-lucide="search-x" class="icon-empty"></i>
+                </div>
                 <h3>해당 조건에 맞는 프로그램이 없습니다</h3>
                 <p>필터 조건을 초기화하거나 다른 검색어로 검색해보세요.</p>
-                <button id="btn-reset-filters" class="btn btn-primary btn-sm">필터 초기화</button>
+                <button id="btn-reset-filters" class="btn btn-primary btn-sm">
+                    <i data-lucide="rotate-ccw" class="icon-sm"></i> 필터 초기화
+                </button>
             </div>
         </section>
 
@@ -168,9 +204,13 @@
         <section id="calendar-view-container" class="content-view" style="display: none;">
             <div class="calendar-card">
                 <div class="calendar-header">
-                    <button id="cal-prev" class="btn-cal-nav">◀ 이전 달</button>
+                    <button id="cal-prev" class="btn-cal-nav">
+                        <i data-lucide="chevron-left" class="icon-sm"></i> 이전 달
+                    </button>
                     <h2 id="cal-month-title" class="calendar-month-title">2026년 9월</h2>
-                    <button id="cal-next" class="btn-cal-nav">다음 달 ▶</button>
+                    <button id="cal-next" class="btn-cal-nav">
+                        다음 달 <i data-lucide="chevron-right" class="icon-sm"></i>
+                    </button>
                 </div>
                 <div class="calendar-weekdays">
                     <div class="weekday sun">일</div>
@@ -194,7 +234,9 @@
     <!-- 인앱 상세 모달 (원본 텍스트/포스터 뷰어) -->
     <div class="modal-backdrop" id="program-modal" style="display: none;">
         <div class="modal-window">
-            <button class="modal-close" id="modal-close-btn" aria-label="닫기">✕</button>
+            <button class="modal-close" id="modal-close-btn" aria-label="닫기">
+                <i data-lucide="x" class="icon-sm"></i>
+            </button>
             <div class="modal-header-section">
                 <div class="modal-badges" id="modal-badges">
                     <!-- 배지들 -->
@@ -214,9 +256,11 @@
                     <span>* 신청은 원본 기관 사이트에서 직접 진행됩니다.</span>
                 </div>
                 <div class="modal-footer-buttons">
-                    <button class="btn btn-outline" id="btn-copy-link">🔗 링크 복사</button>
+                    <button class="btn btn-outline" id="btn-copy-link">
+                        <i data-lucide="copy" class="icon-sm"></i> 링크 복사
+                    </button>
                     <a href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-apply" id="btn-modal-apply">
-                        원본 기관에서 신청하기 ↗
+                        원본 기관에서 신청하기 <i data-lucide="external-link" class="icon-sm"></i>
                     </a>
                 </div>
             </div>

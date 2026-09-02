@@ -96,15 +96,83 @@ body {
 }
 
 .logo-icon {
-  font-size: 26px;
   background: var(--primary-light);
-  width: 48px;
-  height: 48px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-md);
   border: 1px solid #e0e5f2;
+}
+
+.icon-brand {
+  width: 22px;
+  height: 22px;
+  color: var(--primary);
+  stroke-width: 2.2;
+}
+
+.icon-sm {
+  width: 15px;
+  height: 15px;
+  stroke-width: 2;
+}
+
+.icon-xs {
+  width: 13px;
+  height: 13px;
+  stroke-width: 2;
+}
+
+.icon-view {
+  width: 15px;
+  height: 15px;
+  stroke-width: 2;
+}
+
+.icon-chip {
+  width: 13px;
+  height: 13px;
+  stroke-width: 2;
+  vertical-align: -2px;
+  margin-right: 3px;
+}
+
+.icon-chip.icon-open {
+  color: var(--status-open);
+}
+
+.icon-chip.icon-upcoming {
+  color: var(--status-upcoming);
+}
+
+.icon-stat-primary {
+  width: 22px;
+  height: 22px;
+  color: var(--status-open);
+  stroke-width: 2.2;
+}
+
+.icon-stat-secondary {
+  width: 22px;
+  height: 22px;
+  color: var(--status-upcoming);
+  stroke-width: 2.2;
+}
+
+.icon-stat-neutral {
+  width: 22px;
+  height: 22px;
+  color: var(--primary);
+  stroke-width: 2;
+}
+
+.icon-empty {
+  width: 36px;
+  height: 36px;
+  color: var(--text-light);
+  stroke-width: 1.8;
 }
 
 .service-title {
@@ -296,10 +364,13 @@ body {
 .search-icon {
   position: absolute;
   left: 14px;
-  font-size: 15px;
+  width: 16px;
+  height: 16px;
   pointer-events: none;
   color: var(--text-light);
+  stroke-width: 2;
 }
+
 
 .btn-clear {
   position: absolute;

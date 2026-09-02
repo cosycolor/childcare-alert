@@ -81,23 +81,25 @@ document.addEventListener('DOMContentLoaded', () => {
             applyFilters();
         });
 
-        // 칩스 필터 클릭 이벤트
+        // 칩스 필터 클릭 이벤트 (아이콘 클릭 시에도 부모 chip을 찾도록 개선)
         ['district', 'age', 'category', 'status'].forEach(filterType => {
             const containerId = `filter-${filterType}`;
             const container = document.getElementById(containerId);
             if (!container) return;
 
             container.addEventListener('click', (e) => {
-                if (e.target.classList.contains('chip')) {
+                const chipBtn = e.target.closest('.chip');
+                if (chipBtn) {
                     container.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-                    e.target.classList.add('active');
+                    chipBtn.classList.add('active');
 
                     const stateKey = filterType === 'age' ? 'age_group' : filterType;
-                    state.filters[stateKey] = e.target.getAttribute('data-value');
+                    state.filters[stateKey] = chipBtn.getAttribute('data-value');
                     applyFilters();
                 }
             });
         });
+
 
         // 필터 초기화 버튼
         elements.btnResetFilters.addEventListener('click', resetFilters);
@@ -341,10 +343,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     <div class="card-footer">
                         <button class="btn btn-outline btn-detail-trigger" data-id="${prog.id}">
-                            자세히 보기
+                            <i data-lucide="info" class="icon-xs"></i> 자세히 보기
                         </button>
                         <a href="${prog.origin_url}" target="_blank" rel="noopener noreferrer" class="btn btn-primary" onclick="event.stopPropagation();">
-                            신청하기 ↗
+                            신청하기 <i data-lucide="external-link" class="icon-xs"></i>
                         </a>
                     </div>
                 </div>
@@ -359,7 +361,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 openDetailModal(id);
             });
         });
+
+        // Lucide SVG 아이콘 활성화
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
     }
+
 
     // 캘린더 렌더링
     function renderCalendar() {
@@ -450,12 +458,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
         });
+
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
     }
 
     // 모달 열기 함수
     window.openModalById = function(id) {
         openDetailModal(id);
     };
+
 
     function openDetailModal(id) {
         const prog = state.programs.find(p => p.id === id);
