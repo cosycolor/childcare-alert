@@ -317,8 +317,109 @@ CURATED_OFFICIAL_DATA = [
             "성동구 제공기관": "성동구육아종합지원센터, 구립성수어린이집 등"
         }, ensure_ascii=False),
         "origin_url": "https://www.childcare.go.kr/cpin/contents/010401000000.jsp"
+    },
+
+    # 7. 영유아 복합문화/체험관 (신규)
+    {
+        "institution_name": "서울상상나라",
+        "district": "광진구",
+        "category": "복합체험관",
+        "title": "[서울상상나라] 36개월 미만 전용 '아기놀이터' & 영아 오감 발달놀이",
+        "target_age_group": "0~36개월 공통",
+        "target_desc": "36개월 미만 영유아 및 양육자 (단독 전용 공간)",
+        "apply_start_at": "상시 관람 예약",
+        "apply_end_at": "회차별 마감 시까지",
+        "event_date_desc": "화~일 10:00 ~ 18:00 (1일 4회차 운영)",
+        "capacity_info": "회차당 25가정 (쾌적한 인원 제한)",
+        "fee": "36개월 미만 무료 (보호자 4,000원)",
+        "location": "광진구 능동 18 서울상상나라 2층 아기놀이터 (어린이대공원 정문)",
+        "status": "접수중",
+        "detail_type": "TABLE_TEXT",
+        "image_url": "https://images.unsplash.com/photo-1596464716127-f2a829822301?auto=format&fit=crop&w=800&q=80",
+        "detail_content": json.dumps({
+            "시설명": "서울상상나라 2층 아기놀이터",
+            "대상": "36개월 미만 영유아 전용 (큰 아이들과 분리되어 안전함)",
+            "공간특징": "오감 자극 놀이 구조물, 부드러운 안전 쿠션 매트, 영아 수유실 완비",
+            "신청방법": "서울상상나라 공식 홈페이지 > 개인예약 > 관람일/회차 선택 (사전 예약 권장)",
+            "문의처": "02-6450-9500"
+        }, ensure_ascii=False),
+        "origin_url": "https://www.seoulchildrensmuseum.org"
+    },
+    {
+        "institution_name": "성동 아이사랑 복합문화센터",
+        "district": "성동구",
+        "category": "복합체험관",
+        "title": "[성동 아이사랑] 0~36개월 '뮤직 키즈 스튜디오' & 영유아 창의예술놀터",
+        "target_age_group": "0~36개월 공통",
+        "target_desc": "성동구 관내 0~36개월 영유아 및 가족",
+        "apply_start_at": "매월 20일 10:00",
+        "apply_end_at": "선착순 마감 시까지",
+        "event_date_desc": "화~토 (1회차 10:00, 2회차 13:30, 3회차 15:30)",
+        "capacity_info": "회차당 15가정",
+        "fee": "무료 ~ 2,000원",
+        "location": "성동구 금호로 22 (금호동3가) 성동 아이사랑복합문화센터",
+        "status": "접수중",
+        "detail_type": "TABLE_TEXT",
+        "image_url": None,
+        "detail_content": json.dumps({
+            "시설구성": "1층 뮤직키즈스튜디오(음악체험), 2층 공동육아나눔터, 3~4층 창의예술놀터(디지털아트)",
+            "주요프로그램": "영아 악기 소리 탐색, 인터랙티브 미디어아트 놀이, 아기 감각 드로잉",
+            "신청방법": "성동 아이사랑 복합문화센터 웹사이트 온라인 사전예약",
+            "문의처": "02-2204-7640"
+        }, ensure_ascii=False),
+        "origin_url": "https://artplay.sd.go.kr"
+    },
+
+    # 8. 구민체육센터 영아 수영 / 베이비 아쿠아 (신규)
+    {
+        "institution_name": "광진구민체육센터",
+        "district": "광진구",
+        "category": "구민체육센터",
+        "title": "[광진구민체육센터] 12~36개월 '엄마랑 아가랑' 베이비 아쿠아 수영 교실",
+        "target_age_group": "13~36개월",
+        "target_desc": "12~36개월 영유아 및 보호자 (1:1 동반 입수)",
+        "apply_start_at": "2026-09-22 09:00",
+        "apply_end_at": "2026-09-28 18:00",
+        "event_date_desc": "2026-10-01 ~ 2026-10-31 (매주 화/목 11:00 ~ 11:50)",
+        "capacity_info": "반별 10쌍 선착순",
+        "fee": "월 45,000원",
+        "location": "광진구민체육센터 지하 2층 수영장 유아전용풀 (광장동)",
+        "status": "접수예정",
+        "detail_type": "TABLE_TEXT",
+        "image_url": None,
+        "detail_content": json.dumps({
+            "강좌명": "엄마랑 아가랑 영아 수영 교실",
+            "특징": "따뜻한 수온의 유아 전용풀에서 진행되는 심폐지구력 및 관절 이완 물놀이",
+            "준비물": "방수 기저귀, 수영복, 수영모, 보호자 수영복",
+            "신청방법": "광진구시설관리공단 공공체육시설 수강신청 시스템 접수"
+        }, ensure_ascii=False),
+        "origin_url": "https://gwangjin.or.kr"
+    },
+    {
+        "institution_name": "성동구민종합체육센터",
+        "district": "성동구",
+        "category": "구민체육센터",
+        "title": "[성동구민체육센터] 18~36개월 '유아랑 엄마랑' 따뜻한 물놀이 & 체육 교실",
+        "target_age_group": "18~36개월",
+        "target_desc": "18~36개월 영유아 및 양육자",
+        "apply_start_at": "2026-09-25 09:00",
+        "apply_end_at": "2026-09-30 18:00",
+        "event_date_desc": "2026-10-01 ~ 2026-10-31 (매주 월/수/금 10:00 ~ 10:50)",
+        "capacity_info": "12쌍 선착순",
+        "fee": "월 40,000원",
+        "location": "성동구민종합체육센터 1층 유아풀 (뚝섬역 8번 출구)",
+        "status": "접수예정",
+        "detail_type": "TABLE_TEXT",
+        "image_url": None,
+        "detail_content": json.dumps({
+            "강좌명": "유아랑 엄마랑 물놀이 체육",
+            "특징": "물 공포심을 없애고 보호자와 교감하는 리듬 수중 체조",
+            "신청방법": "성동구도시관리공단 체육시설 수강신청 포털 온라인 접수"
+        }, ensure_ascii=False),
+        "origin_url": "https://sports.happysd.or.kr"
     }
 ]
+
 
 async def sync_all_data(db: Session) -> dict:
     from app.database import create_tables

@@ -5,9 +5,10 @@ import logging
 import urllib.request
 from bs4 import BeautifulSoup
 from typing import List, Dict, Any
-from app.scrapers.base import BaseScraper
+from app.scrapers.base import BaseScraper, clean_datetime_text, is_for_parent_and_child
 
 logger = logging.getLogger(__name__)
+
 
 class GwangjinCareScraper(BaseScraper):
     @property

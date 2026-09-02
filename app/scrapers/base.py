@@ -88,18 +88,6 @@ def clean_datetime_text(text: str) -> str:
 
 
 class BaseScraper(ABC):
-    def __init__(self, name: str, district: str, category: str):
-        self.name = name
-        self.district = district
-        self.category = category
-
-    @abstractmethod
-    async def scrape(self) -> List[Dict[str, Any]]:
-        """
-        크롤링 수행 후 정규화된 Program 딕셔너리 리스트 반환
-        """
-        pass
-
     @property
     @abstractmethod
     def name(self) -> str:
@@ -109,15 +97,18 @@ class BaseScraper(ABC):
     @property
     @abstractmethod
     def district(self) -> str:
-        """자치구 (광진구, 성동구 등)"""
+        """관할 자치구 (광진구, 성동구 등)"""
         pass
 
     @property
     @abstractmethod
     def category(self) -> str:
         """기관 카테고리 (육아종합지원센터, 구립도서관, 가족센터 등)"""
+        pass
 
     @abstractmethod
     async def scrape(self) -> List[Dict[str, Any]]:
-        """프로그램 데이터 수집 후 딕셔너리 리스트 반환"""
+        """
+        크롤링 수행 후 정규화된 Program 딕셔너리 리스트 반환
+        """
         pass
