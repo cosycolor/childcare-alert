@@ -411,6 +411,125 @@ body {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
+/* 👶 우리 아기 맞춤 생년월일 필터 바 */
+.baby-age-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #f0fdf4 0%, #eff6ff 100%);
+  border: 1px solid #dbeafe;
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+  margin-bottom: 16px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.baby-age-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.baby-icon-badge {
+  width: 38px;
+  height: 38px;
+  background: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #bfdbfe;
+}
+
+.icon-baby {
+  width: 20px;
+  height: 20px;
+  color: #2563eb;
+}
+
+.baby-label-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.baby-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e3a8a;
+  cursor: pointer;
+}
+
+.baby-desc {
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.baby-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.input-date {
+  padding: 8px 12px;
+  min-width: 135px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  border: 1px solid #93c5fd;
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  color: #1e293b;
+  outline: none;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.input-date::placeholder {
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.input-date:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.baby-calc-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #2563eb;
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 12.5px;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+  animation: fadeIn 0.2s ease;
+}
+
+.btn-clear-baby {
+  background: rgba(255, 255, 255, 0.25);
+  border: none;
+  color: #ffffff;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s ease;
+}
+
+.btn-clear-baby:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
 /* 필터 칩스 */
 .filter-chips-wrapper {
   display: flex;
@@ -422,22 +541,27 @@ body {
 
 .filter-group {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
-  flex-wrap: wrap;
 }
 
 .filter-title {
   font-size: 13px;
   font-weight: 700;
   color: var(--text-muted);
-  min-width: 65px;
+  width: 68px;
+  min-width: 68px;
+  flex-shrink: 0;
+  padding-top: 5px; /* 칩 버튼 높이와 시각적 중앙 정렬 */
+  line-height: 1.2;
 }
 
 .chips-list {
+  flex: 1;
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .chip {
@@ -473,11 +597,42 @@ body {
   align-items: center;
   margin-bottom: 16px;
   padding: 0 2px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .results-count {
   font-size: 15px;
   color: var(--text-main);
+}
+
+.results-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sort-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.sort-select {
+  padding: 6px 10px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  color: var(--text-main);
+  outline: none;
+  cursor: pointer;
+}
+
+.sort-select:focus {
+  border-color: var(--primary);
 }
 
 .results-count strong {

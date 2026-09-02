@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,13 +8,15 @@
     <meta name="description" content="광진구·성동구 육아종합지원센터, 구립도서관, 보건소, 문화센터의 0~36개월 영유아 프로그램 정보를 한 곳에서 확인하고 바로 신청하세요.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/mobile.css">
     <!-- Lucide Icons (모던 라인 아이콘) -->
 
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
+
 <body>
     <!-- 상단 글로벌 네비게이션 헤더 -->
     <header class="app-header">
@@ -101,6 +104,31 @@
                     </div>
                 </div>
 
+                <!-- 👶 우리 아기 생년월일 맞춤 필터 배너 -->
+                <div class="baby-age-filter-bar">
+                    <div class="baby-age-left">
+                        <div class="baby-icon-badge">
+                            <i data-lucide="baby" class="icon-baby"></i>
+                        </div>
+                        <div class="baby-label-wrap">
+                            <label for="baby-birthdate" class="baby-title">우리 아이 생년월일 맞춤 찾기</label>
+                            <span class="baby-desc">생년월일을 입력하면 지금 딱 신청 가능한 월령의 프로그램만 보여드려요!</span>
+                        </div>
+                    </div>
+                    <div class="baby-input-wrap">
+                        <input type="text" id="baby-birthdate" class="input-date" placeholder="2025-11-29"
+                            onfocus="(this.type='date'); try{this.showPicker();}catch(e){}"
+                            onblur="if(!this.value) this.type='text'"
+                            min="2023-01-01" max="2026-12-31" />
+                        <div id="baby-calc-result" class="baby-calc-badge" style="display: none;">
+                            <span id="baby-months-text">생후 0개월</span>
+                            <button id="btn-clear-baby-date" class="btn-clear-baby" title="생년월일 필터 해제">
+                                <i data-lucide="x" class="icon-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 칩스 필터 그룹 -->
                 <div class="filter-chips-wrapper">
                     <!-- 지역 필터 -->
@@ -121,6 +149,20 @@
                             <button class="chip" data-value="0~12개월">0~12개월 (영아)</button>
                             <button class="chip" data-value="13~24개월">13~24개월 (걸음마)</button>
                             <button class="chip" data-value="25~36개월">25~36개월 (유아)</button>
+                        </div>
+                    </div>
+
+                    <!-- 비용 필터 (무료 / 유료) -->
+                    <div class="filter-group">
+                        <span class="filter-title">비용:</span>
+                        <div class="chips-list" id="filter-fee">
+                            <button class="chip active" data-value="전체">전체</button>
+                            <button class="chip" data-value="무료">
+                                <i data-lucide="gift" class="icon-chip"></i> 무료만
+                            </button>
+                            <button class="chip" data-value="유료">
+                                <i data-lucide="credit-card" class="icon-chip"></i> 유료만
+                            </button>
                         </div>
                     </div>
 
@@ -154,14 +196,13 @@
                                 <i data-lucide="sparkles" class="icon-chip"></i> 복합체험관 (상상나라/아이사랑)
                             </button>
                             <button class="chip" data-value="구민체육센터">
-                                <i data-lucide="waves" class="icon-chip"></i> 구민체육센터 (유아수영)
+                                <i data-lucide="dumbbell" class="icon-chip"></i> 구민체육센터
                             </button>
                             <button class="chip" data-value="시간제보육">
                                 <i data-lucide="hourglass" class="icon-chip"></i> 시간제보육
                             </button>
                         </div>
                     </div>
-
 
                     <!-- 접수 상태 필터 -->
                     <div class="filter-group">
@@ -187,11 +228,17 @@
                 <div class="results-count">
                     총 <strong id="result-total-count">0</strong>개의 영유아 프로그램
                 </div>
-                <div class="results-notice">
-                    * 원본 기관의 상황에 따라 조기 마감될 수 있습니다.
+                <div class="results-controls">
+                    <label for="sort-select" class="sort-label">정렬:</label>
+                    <select id="sort-select" class="sort-select">
+                        <option value="status">신청 오픈순 (접수중 우선)</option>
+                        <option value="free_first">무료 프로그램 먼저</option>
+                        <option value="paid_first">유료 프로그램 먼저</option>
+                        <option value="title">가나다순</option>
+                    </select>
                 </div>
             </div>
-            
+
             <div class="programs-grid" id="programs-grid">
                 <!-- 프로그램 카드들이 JS로 동적 렌더링됩니다 -->
             </div>
@@ -266,7 +313,8 @@
                 <div class="modal-reviews-section">
                     <div class="reviews-header">
                         <h3 class="reviews-title">
-                            <i data-lucide="message-square" class="icon-sm"></i> 생생 꿀팁 & 후기 <span id="modal-review-count" class="badge-review-count">0</span>
+                            <i data-lucide="message-square" class="icon-sm"></i> 생생 꿀팁 & 후기 <span
+                                id="modal-review-count" class="badge-review-count">0</span>
                         </h3>
                         <span class="reviews-sub">주차, 수유실 팁이나 월령별 생생한 후기를 남겨보세요</span>
                     </div>
@@ -274,12 +322,16 @@
                     <!-- 후기 작성 폼 -->
                     <form id="review-form" class="review-write-box">
                         <div class="review-inputs-row">
-                            <input type="text" id="review-nickname" placeholder="닉네임 (예: 광진맘)" maxlength="20" required />
-                            <input type="password" id="review-password" placeholder="삭제용 비밀번호 4자리" maxlength="10" required />
+                            <input type="text" id="review-nickname" placeholder="닉네임 (예: 뉴진맘)" maxlength="20"
+                                required />
+                            <input type="password" id="review-password" placeholder="삭제용 비밀번호 4자리" maxlength="10"
+                                required />
                         </div>
                         <div class="review-content-row">
-                            <textarea id="review-content" placeholder="주차 팁이나 아기 월령별 생생한 후기를 공유해주세요 :)" rows="2" required></textarea>
-                            <button type="submit" class="btn btn-primary btn-sm btn-submit-review" id="btn-submit-review">
+                            <textarea id="review-content" placeholder="주차 팁이나 아기 월령별 생생한 후기를 공유해주세요 :)" rows="2"
+                                required></textarea>
+                            <button type="submit" class="btn btn-primary btn-sm btn-submit-review"
+                                id="btn-submit-review">
                                 <i data-lucide="send" class="icon-xs"></i> 등록
                             </button>
                         </div>
@@ -302,7 +354,8 @@
                     <button class="btn btn-outline" id="btn-copy-link">
                         <i data-lucide="copy" class="icon-sm"></i> 링크 복사
                     </button>
-                    <a href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-apply" id="btn-modal-apply">
+                    <a href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-apply"
+                        id="btn-modal-apply">
                         원본 기관에서 신청하기 <i data-lucide="external-link" class="icon-sm"></i>
                     </a>
                 </div>
@@ -321,7 +374,8 @@
                 <p class="dialog-desc">작성 시 설정한 4자리 비밀번호를 입력해주세요.</p>
             </div>
             <form id="delete-confirm-form" class="dialog-form">
-                <input type="password" id="delete-confirm-password" placeholder="비밀번호 4자리" maxlength="10" inputmode="numeric" required />
+                <input type="password" id="delete-confirm-password" placeholder="비밀번호 4자리" maxlength="10"
+                    inputmode="numeric" required />
                 <div class="dialog-actions">
                     <button type="button" class="btn btn-outline" id="btn-cancel-delete">취소</button>
                     <button type="submit" class="btn btn-danger" id="btn-confirm-delete">삭제하기</button>

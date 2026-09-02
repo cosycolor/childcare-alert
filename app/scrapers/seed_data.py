@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.models import Program
 from app.scrapers.gwangjin_lib import GwangjinLibScraper
 from app.scrapers.gwangjin_care import GwangjinCareScraper
+from app.scrapers.gwangjin_sports import GwangjinSportsScraper
 from app.scrapers.seongdong_care import SeongdongCareScraper
 from app.scrapers.familynet import FamilyNetScraper
 
@@ -11,32 +12,34 @@ logger = logging.getLogger(__name__)
 
 # 실제 지자체 연계 공공/민간 프로그램 및 예약 데이터 (키즈카페, 놀이터, 보건소, 숲체험, 백화점/마트 문센, 북스타트, 시간제보육)
 CURATED_OFFICIAL_DATA = [
-    # 1. 공공놀이터 / 서울형 키즈카페
+    # 1. 공공놀이터 / 서울형 키즈카페 / 공동육아방
     {
-        "institution_name": "광진구육아종합지원센터 (꾸미팡팡)",
+        "institution_name": "광진구육아종합지원센터 (꾸미팡팡 공동육아방)",
         "district": "광진구",
         "category": "공공놀이터/키즈카페",
-        "title": "[공공놀이터] 광진구 꾸미팡팡놀이터(군자/자양) 영유아 실내놀이실 정기 예약",
+        "title": "[공동육아방] 광진구 꾸미팡팡 공동육아방(1호점 능동/2호점 중곡동/3호점 군자동) 예약",
         "target_age_group": "0~36개월 공통",
-        "target_desc": "광진구 거주 0~36개월 영유아 및 보호자 (만 5세 이하)",
-        "apply_start_at": "매주 화요일 09:00",
-        "apply_end_at": "이용 당일 1시간 전까지",
-        "event_date_desc": "화~토 (1회차 10:00, 2회차 13:00, 3회차 15:30)",
-        "capacity_info": "회차당 15가정 (선착순 정기 예약)",
-        "fee": "영유아 2,000원 (보호자 무료)",
-        "location": "꾸미팡팡놀이터 군자점 (군자동) / 자양점",
+        "target_desc": "광진구 관내 0~36개월 영아 및 동반 보호자 (부모/양육자)",
+        "apply_start_at": "매주 월요일 09:00",
+        "apply_end_at": "이용 전날 24:00까지",
+        "event_date_desc": "평일 월~금 (1회차 09:30~11:30 / 2회차 13:00~15:00 / 3회차 15:30~17:30)",
+        "capacity_info": "회차당 3가족 (최대 6명, 선착순)",
+        "fee": "무료",
+        "location": "1호점(능동), 2호점(중곡동), 3호점(군자동)",
         "status": "접수중",
         "detail_type": "TABLE_TEXT",
         "image_url": "https://images.unsplash.com/photo-1596464716127-f2a829822301?auto=format&fit=crop&w=800&q=80",
         "detail_content": json.dumps({
-            "시설명": "광진구 꾸미팡팡놀이터 (공공 영유아 실내놀이터)",
-            "이용대상": "0~36개월 영유아 및 미취학 아동과 보호자",
-            "정기예약오픈": "매주 화요일 오전 09:00 (차주 이용분 오픈)",
-            "이용시간": "1회차 10:00~12:00, 2회차 13:00~15:00, 3회차 15:30~17:30",
-            "이용요금": "아동 2,000원 / 보호자 무료 (다둥이/기초생활수급 100% 감면)",
-            "예약방법": "광진구 공식 예약포털 온라인 선착순 예약"
+            "시설명": "광진구 꾸미팡팡 공동육아방 (1호점 능동, 2호점 중곡동, 3호점 군자동)",
+            "이용대상": "광진구 관내 36개월 이하 영아 및 동반 부모(보호자)",
+            "정기예약오픈": "매주 월요일 오전 09:00에 다음 주 예약 오픈",
+            "예약/취소규칙": "홈페이지 예약 및 취소는 이용일 전날 24시까지 가능 (당일 10시까지 전화 취소 시 벌점 미발생)",
+            "이용시간": "1회차 09:30~11:30, 2회차 13:00~15:00, 3회차 15:30~17:30 (점심/환경정비시간 제외)",
+            "이용인원": "회차당 3가족(6명) / 형제자매 동반 시 총 7명 이내",
+            "이용요금": "무료",
+            "예약방법": "광진구육아종합지원센터 홈페이지 회원가입 후 온라인 신청 (미달 시 당일 전화 신청)"
         }, ensure_ascii=False),
-        "origin_url": "https://www.gjcare.go.kr/html/sub/index.php?pno=030401"
+        "origin_url": "https://www.gjcare.go.kr/html/sub/index.php?pno=041604"
     },
     {
         "institution_name": "서울형 키즈카페 (광진구)",
@@ -393,7 +396,7 @@ CURATED_OFFICIAL_DATA = [
             "준비물": "방수 기저귀, 수영복, 수영모, 보호자 수영복",
             "신청방법": "광진구시설관리공단 공공체육시설 수강신청 시스템 접수"
         }, ensure_ascii=False),
-        "origin_url": "https://gwangjin.or.kr"
+        "origin_url": "https://booking.gwangjin.or.kr/fmcs/2?company_code=GWANGJIN01"
     },
     {
         "institution_name": "성동구민종합체육센터",
@@ -427,6 +430,7 @@ async def sync_all_data(db: Session) -> dict:
 
     scrapers = [
         GwangjinCareScraper(),
+        GwangjinSportsScraper(),
         SeongdongCareScraper(),
         GwangjinLibScraper(),
         FamilyNetScraper()

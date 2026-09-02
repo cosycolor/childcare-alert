@@ -13,8 +13,12 @@ document.addEventListener('DOMContentLoaded', () => {
             age_group: '전체',
             category: '전체',
             status: '전체',
+            fee: '전체', // '전체' | '무료' | '유료'
+            babyBirthdate: null,
+            babyMonths: null,
             q: ''
         },
+        sortBy: 'status', // 'status' | 'free_first' | 'paid_first' | 'title'
         currentMonth: new Date(2026, 8, 1), // 2026년 9월 기본
         selectedProgram: null
     };
@@ -38,6 +42,13 @@ document.addEventListener('DOMContentLoaded', () => {
         calNextBtn: document.getElementById('cal-next'),
         calSelectedInfo: document.getElementById('calendar-selected-info'),
         
+        // 아이 생년월일 맞춤 필터
+        babyBirthdate: document.getElementById('baby-birthdate'),
+        babyCalcResult: document.getElementById('baby-calc-result'),
+        babyMonthsText: document.getElementById('baby-months-text'),
+        btnClearBabyDate: document.getElementById('btn-clear-baby-date'),
+        sortSelect: document.getElementById('sort-select'),
+
         // 통계 배너
         statOpen: document.getElementById('stat-open'),
         statUpcoming: document.getElementById('stat-upcoming'),
@@ -81,8 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
             applyFilters();
         });
 
-        // 칩스 필터 클릭 이벤트 (아이콘 클릭 시에도 부모 chip을 찾도록 개선)
-        ['district', 'age', 'category', 'status'].forEach(filterType => {
+        // 칩스 필터 클릭 이벤트
+        ['district', 'age', 'fee', 'category', 'status'].forEach(filterType => {
             const containerId = `filter-${filterType}`;
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -100,9 +111,48 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
+        // 아이 생년월일 입력 이벤트
+        if (elements.babyBirthdate) {
+            elements.babyBirthdate.addEventListener('change', (e) => {
+                const bdate = e.target.value;
+                if (bdate) {
+                    const months = calculateBabyMonths(bdate);
+                    state.filters.babyBirthdate = bdate;
+                    state.filters.babyMonths = months;
+
+                    const years = Math.floor(months / 12);
+                    const remMonths = months % 12;
+                    const ageDesc = years > 0 ? `만 ${years}세 (${months}개월)` : `생후 ${months}개월`;
+                    
+                    elements.babyMonthsText.textContent = `👶 ${ageDesc} 맞춤 보기`;
+                    elements.babyCalcResult.style.display = 'flex';
+                } else {
+                    clearBabyFilter();
+                }
+                applyFilters();
+            });
+        }
+
+        // 아이 생년월일 필터 해제 버튼
+        if (elements.btnClearBabyDate) {
+            elements.btnClearBabyDate.addEventListener('click', () => {
+                clearBabyFilter();
+                applyFilters();
+            });
+        }
+
+        // 정렬 선택 변경 이벤트
+        if (elements.sortSelect) {
+            elements.sortSelect.addEventListener('change', (e) => {
+                state.sortBy = e.target.value;
+                applyFilters();
+            });
+        }
 
         // 필터 초기화 버튼
-        elements.btnResetFilters.addEventListener('click', resetFilters);
+        if (elements.btnResetFilters) {
+            elements.btnResetFilters.addEventListener('click', resetFilters);
+        }
 
         // 뷰 전환 버튼
         elements.btnListView.addEventListener('click', () => switchView('list'));
@@ -143,6 +193,69 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 아이 생후 개월 수 계산 (현재 날짜 기준)
+    function calculateBabyMonths(birthdateStr) {
+        const birthDate = new Date(birthdateStr);
+        const today = new Date(); // 현재 날짜
+
+        let months = (today.getFullYear() - birthDate.getFullYear()) * 12;
+        months += today.getMonth() - birthDate.getMonth();
+        if (today.getDate() < birthDate.getDate()) {
+            months -= 1;
+        }
+        return Math.max(0, months);
+    }
+
+    // 아이 생년월일 필터 해제
+    function clearBabyFilter() {
+        if (elements.babyBirthdate) {
+            elements.babyBirthdate.value = '';
+            elements.babyBirthdate.type = 'text';
+        }
+        if (elements.babyCalcResult) elements.babyCalcResult.style.display = 'none';
+        state.filters.babyBirthdate = null;
+        state.filters.babyMonths = null;
+    }
+
+    // 아이 월령에 맞는 프로그램인지 정밀 판별
+    function isProgramEligibleForBabyMonths(item, babyMonths) {
+        if (babyMonths === null || isNaN(babyMonths)) return true;
+
+        const combined = `${item.title} ${item.target_desc || ''} ${item.target_age_group || ''}`;
+
+        // 1. 구체적 개월 수 범위 매칭 (예: 12~20개월, 20-48개월, 6-12개월, 17-32개월)
+        const matchRange = combined.match(/(\d+)\s*[-~]\s*(\d+)\s*개월/);
+        if (matchRange) {
+            const startM = parseInt(matchRange[1], 10);
+            const endM = parseInt(matchRange[2], 10);
+            return babyMonths >= startM && babyMonths <= endM;
+        }
+
+        // 2. 단일 기준 매칭
+        if (combined.includes('0~12개월') || combined.includes('영아')) {
+            return babyMonths <= 12;
+        }
+        if (combined.includes('13~24개월') || combined.includes('걸음마')) {
+            return babyMonths >= 12 && babyMonths <= 24;
+        }
+        if (combined.includes('25~36개월') || combined.includes('두돌')) {
+            return babyMonths >= 24 && babyMonths <= 36;
+        }
+        if (combined.includes('공통') || combined.includes('0~36개월')) {
+            return babyMonths <= 36;
+        }
+
+        // 기본적으로 36개월 이하 아기 모두 수용
+        return babyMonths <= 36;
+    }
+
+    // 비용(무료/유료) 판별
+    function isFeeMatch(itemFee, filterValue) {
+        if (filterValue === '전체') return true;
+        const isFree = !itemFee || itemFee.includes('무료') || itemFee.trim() === '0원' || itemFee.trim() === '원' || itemFee.trim() === '';
+        return filterValue === '무료' ? isFree : !isFree;
+    }
+
     // 뷰 전환
     function switchView(viewName) {
         state.currentView = viewName;
@@ -167,12 +280,19 @@ document.addEventListener('DOMContentLoaded', () => {
             age_group: '전체',
             category: '전체',
             status: '전체',
+            fee: '전체',
+            babyBirthdate: null,
+            babyMonths: null,
             q: ''
         };
         elements.searchInput.value = '';
         elements.searchClear.style.display = 'none';
+        clearBabyFilter();
 
-        ['district', 'age', 'category', 'status'].forEach(filterType => {
+        state.sortBy = 'status';
+        if (elements.sortSelect) elements.sortSelect.value = 'status';
+
+        ['district', 'age', 'fee', 'category', 'status'].forEach(filterType => {
             const container = document.getElementById(`filter-${filterType}`);
             if (container) {
                 container.querySelectorAll('.chip').forEach(c => {
@@ -232,29 +352,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 클라이언트 사이드 필터 적용
+    // 클라이언트 사이드 필터 및 정렬 적용
     function applyFilters() {
-        state.filteredPrograms = state.programs.filter(item => {
-            // 자치구
+        let list = state.programs.filter(item => {
+            // 1. 자치구
             if (state.filters.district !== '전체') {
                 if (!item.district.includes(state.filters.district)) return false;
             }
-            // 기관 카테고리
+            // 2. 기관 카테고리
             if (state.filters.category !== '전체') {
                 if (item.category !== state.filters.category) return false;
             }
-            // 연령
+            // 3. 연령 칩스 필터
             if (state.filters.age_group !== '전체') {
                 const isMatch = item.target_age_group === state.filters.age_group ||
                                 item.target_age_group.includes('공통') ||
                                 (item.target_desc && item.target_desc.includes(state.filters.age_group.replace('개월', '')));
                 if (!isMatch) return false;
             }
-            // 상태
+            // 4. 아이 생년월일 기반 월령 맞춤 필터
+            if (state.filters.babyMonths !== null) {
+                if (!isProgramEligibleForBabyMonths(item, state.filters.babyMonths)) {
+                    return false;
+                }
+            }
+            // 5. 비용 필터 (무료 / 유료)
+            if (!isFeeMatch(item.fee, state.filters.fee)) {
+                return false;
+            }
+            // 6. 상태 필터
             if (state.filters.status !== '전체') {
                 if (item.status !== state.filters.status) return false;
             }
-            // 검색어
+            // 7. 검색어
             if (state.filters.q) {
                 const q = state.filters.q.toLowerCase();
                 const content = `${item.title} ${item.institution_name} ${item.target_desc || ''} ${item.location || ''}`.toLowerCase();
@@ -262,6 +392,33 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             return true;
         });
+
+        // 정렬 적용
+        const statusOrder = { "접수중": 1, "접수예정": 2, "대기접수": 3, "마감": 4, "종료": 5 };
+        
+        list.sort((a, b) => {
+            if (state.sortBy === 'free_first') {
+                const aFree = !a.fee || a.fee.includes('무료') ? 0 : 1;
+                const bFree = !b.fee || b.fee.includes('무료') ? 0 : 1;
+                if (aFree !== bFree) return aFree - bFree;
+                return (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99);
+            } else if (state.sortBy === 'paid_first') {
+                const aFree = !a.fee || a.fee.includes('무료') ? 1 : 0;
+                const bFree = !b.fee || b.fee.includes('무료') ? 1 : 0;
+                if (aFree !== bFree) return aFree - bFree;
+                return (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99);
+            } else if (state.sortBy === 'title') {
+                return a.title.localeCompare(b.title, 'ko');
+            } else {
+                // 기본: status
+                const orderA = statusOrder[a.status] || 99;
+                const orderB = statusOrder[b.status] || 99;
+                if (orderA !== orderB) return orderA - orderB;
+                return (a.apply_start_at || '9999').localeCompare(b.apply_start_at || '9999');
+            }
+        });
+
+        state.filteredPrograms = list;
 
         renderList();
         if (state.currentView === 'calendar') {
