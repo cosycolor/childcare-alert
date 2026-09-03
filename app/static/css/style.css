@@ -2527,6 +2527,189 @@ body {
 }
 
 /* ==========================================
+   백화점 & 대형마트 문화센터 가이드 섹션
+   ========================================== */
+.culture-center-section {
+  margin-top: 48px;
+  margin-bottom: 40px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  box-shadow: var(--shadow-sm);
+}
+
+.culture-center-header {
+  margin-bottom: 22px;
+}
+
+.culture-header-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.culture-icon-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: #fef2f2;
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.icon-culture {
+  width: 22px;
+  height: 22px;
+}
+
+.culture-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.culture-section-desc {
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+
+.culture-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.culture-card {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.culture-card:hover {
+  transform: translateY(-3px);
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 20px rgba(43, 54, 116, 0.08);
+}
+
+.culture-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+
+.culture-brand-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.brand-lotte {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.brand-emart {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.brand-hyundai {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.brand-homeplus {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.culture-branch-tag {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.culture-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+
+.culture-card-features {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+  font-size: 12.5px;
+  color: #475569;
+}
+
+.culture-card-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  line-height: 1.4;
+}
+
+.icon-check {
+  width: 14px;
+  height: 14px;
+  color: var(--accent-teal);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.culture-card-footer {
+  margin-top: auto;
+  border-top: 1px dashed var(--border-color);
+  padding-top: 14px;
+}
+
+.btn-culture-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 9px 14px;
+  background: var(--bg-main);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.btn-culture-link:hover {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+}
+
+.icon-link {
+  width: 13px;
+  height: 13px;
+}
+
+/* ==========================================
    반응형
    ========================================== */
 @media (max-width: 768px) {

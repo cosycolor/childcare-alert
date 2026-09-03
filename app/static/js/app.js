@@ -172,6 +172,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     const stateKey = filterType === 'age' ? 'age_group' : filterType;
                     state.filters[stateKey] = chipBtn.getAttribute('data-value');
                     applyFilters();
+
+                    if (filterType === 'category' && chipBtn.getAttribute('data-value') === '백화점/마트 문센') {
+                        const guideEl = document.getElementById('culture-center-guide');
+                        if (guideEl) {
+                            guideEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
                 }
             });
         });
