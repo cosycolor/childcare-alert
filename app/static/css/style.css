@@ -1835,15 +1835,6 @@ body {
   overflow: hidden;
 }
 
-.community-banner::after {
-  content: '💬';
-  position: absolute;
-  right: 24px;
-  bottom: -10px;
-  font-size: 100px;
-  opacity: 0.12;
-  pointer-events: none;
-}
 
 .community-banner-content {
   display: flex;
