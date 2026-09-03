@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
             q: ''
         },
         sortBy: 'status', // 'status' | 'free_first' | 'paid_first' | 'title'
+        currentPage: 1,
+        pageSize: 12,
         currentMonth: new Date(2026, 8, 1), // 2026년 9월 기본
         selectedProgram: null
     };
@@ -26,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // DOM 요소
     const elements = {
         programsGrid: document.getElementById('programs-grid'),
+        paginationContainer: document.getElementById('pagination-container'),
         emptyState: document.getElementById('empty-state'),
         resultTotalCount: document.getElementById('result-total-count'),
         searchInput: document.getElementById('search-input'),
@@ -353,7 +356,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 클라이언트 사이드 필터 및 정렬 적용
-    function applyFilters() {
+    function applyFilters(resetPage = true) {
+        if (resetPage) {
+            state.currentPage = 1;
+        }
+
         let list = state.programs.filter(item => {
             // 1. 자치구
             if (state.filters.district !== '전체') {
@@ -449,18 +456,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 카드 목록 렌더링
+    // 카드 목록 렌더링 (페이지네이션 적용)
     function renderList() {
-        elements.resultTotalCount.textContent = state.filteredPrograms.length;
+        const total = state.filteredPrograms.length;
+        elements.resultTotalCount.textContent = total;
 
-        if (state.filteredPrograms.length === 0) {
+        if (total === 0) {
             elements.programsGrid.innerHTML = '';
             elements.emptyState.style.display = 'block';
+            if (elements.paginationContainer) {
+                elements.paginationContainer.style.display = 'none';
+                elements.paginationContainer.innerHTML = '';
+            }
             return;
         }
 
         elements.emptyState.style.display = 'none';
-        elements.programsGrid.innerHTML = state.filteredPrograms.map(prog => {
+
+        const totalPages = Math.ceil(total / state.pageSize);
+        if (state.currentPage > totalPages) {
+            state.currentPage = Math.max(1, totalPages);
+        }
+
+        const startIndex = (state.currentPage - 1) * state.pageSize;
+        const endIndex = Math.min(startIndex + state.pageSize, total);
+        const currentItems = state.filteredPrograms.slice(startIndex, endIndex);
+
+        elements.programsGrid.innerHTML = currentItems.map(prog => {
             const dday = calculateDDay(prog.apply_start_at, prog.status);
             const statusClass = prog.status === '접수중' ? 'open' : (prog.status === '접수예정' ? 'upcoming' : 'closed');
 
@@ -510,7 +532,6 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
 
-
         // 카드 클릭 시 모달 열기 이벤트
         elements.programsGrid.querySelectorAll('.program-card').forEach(card => {
             card.addEventListener('click', () => {
@@ -519,9 +540,105 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
+        // 페이지네이션 컨트롤 렌더링
+        renderPagination(totalPages, total, startIndex + 1, endIndex);
+
         // Lucide SVG 아이콘 활성화
         if (window.lucide) {
             window.lucide.createIcons();
+        }
+    }
+
+    // 페이지네이션 UI 렌더링
+    function renderPagination(totalPages, total, startItemNum, endItemNum) {
+        if (!elements.paginationContainer) return;
+
+        if (totalPages <= 1) {
+            elements.paginationContainer.style.display = 'none';
+            elements.paginationContainer.innerHTML = '';
+            return;
+        }
+
+        elements.paginationContainer.style.display = 'flex';
+
+        const current = state.currentPage;
+
+        // 페이지 번호 생성 (7개 이하 전체 표시, 초과 시 스마트 윈도우 & ...)
+        const pages = [];
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) pages.push(i);
+        } else {
+            pages.push(1);
+            if (current > 3) {
+                pages.push('...');
+            }
+            const start = Math.max(2, current - 1);
+            const end = Math.min(totalPages - 1, current + 1);
+            for (let i = start; i <= end; i++) {
+                pages.push(i);
+            }
+            if (current < totalPages - 2) {
+                pages.push('...');
+            }
+            pages.push(totalPages);
+        }
+
+        const pagesHtml = pages.map(p => {
+            if (p === '...') {
+                return `<span class="page-ellipsis">···</span>`;
+            }
+            return `<button class="page-btn ${p === current ? 'active' : ''}" data-page="${p}" aria-label="${p}페이지">${p}</button>`;
+        }).join('');
+
+        elements.paginationContainer.innerHTML = `
+            <div class="pagination-info">
+                <span>전체 ${total}개 중 <strong>${startItemNum}-${endItemNum}</strong>개 표시 (${current} / ${totalPages} 페이지)</span>
+            </div>
+            <nav class="pagination-nav" aria-label="프로그램 페이지 네비게이션">
+                <button class="page-nav-btn" id="btn-page-prev" ${current === 1 ? 'disabled' : ''} title="이전 페이지">
+                    <i data-lucide="chevron-left" class="icon-xs"></i> <span>이전</span>
+                </button>
+                <div class="page-numbers">
+                    ${pagesHtml}
+                </div>
+                <button class="page-nav-btn" id="btn-page-next" ${current === totalPages ? 'disabled' : ''} title="다음 페이지">
+                    <span>다음</span> <i data-lucide="chevron-right" class="icon-xs"></i>
+                </button>
+            </nav>
+        `;
+
+        // 이전/다음/번호 클릭 이벤트
+        const prevBtn = elements.paginationContainer.querySelector('#btn-page-prev');
+        if (prevBtn && current > 1) {
+            prevBtn.addEventListener('click', () => goToPage(current - 1));
+        }
+
+        const nextBtn = elements.paginationContainer.querySelector('#btn-page-next');
+        if (nextBtn && current < totalPages) {
+            nextBtn.addEventListener('click', () => goToPage(current + 1));
+        }
+
+        elements.paginationContainer.querySelectorAll('.page-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const pageNum = parseInt(btn.getAttribute('data-page'), 10);
+                if (pageNum && pageNum !== current) {
+                    goToPage(pageNum);
+                }
+            });
+        });
+    }
+
+    // 지정 페이지로 이동 및 상단 스크롤
+    function goToPage(page) {
+        state.currentPage = page;
+        renderList();
+        
+        // 목록 상단으로 부드럽게 스크롤
+        const target = elements.listViewContainer;
+        if (target) {
+            const headerHeight = document.querySelector('.app-header')?.offsetHeight || 70;
+            const topOffset = target.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
+            window.scrollTo({ top: Math.max(0, topOffset), behavior: 'smooth' });
         }
     }
 

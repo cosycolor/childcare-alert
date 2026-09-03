@@ -441,4 +441,59 @@
     height: 44px;
     font-size: 14px;
   }
+
+  /* 8. 페이지네이션 모바일 최적화 */
+  .pagination-container {
+    margin-top: 22px;
+    margin-bottom: 16px;
+    padding: 14px 12px;
+    border-radius: 14px;
+    gap: 12px;
+  }
+
+  .pagination-info {
+    font-size: 12px;
+    text-align: center;
+  }
+
+  .pagination-nav {
+    width: 100%;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .page-numbers {
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .page-btn {
+    min-width: 36px;
+    height: 36px;
+    font-size: 13px;
+    padding: 0 6px;
+    border-radius: 8px;
+  }
+
+  .page-nav-btn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    font-size: 12.5px;
+    border-radius: 8px;
+    gap: 2px;
+  }
+
+  .page-nav-btn span {
+    font-size: 12px;
+  }
+
+  .page-ellipsis {
+    min-width: 18px;
+    height: 36px;
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
 }
+
