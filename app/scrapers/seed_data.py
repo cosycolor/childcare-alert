@@ -1,5 +1,8 @@
+import os
 import json
+import asyncio
 import logging
+from typing import List, Dict, Any, Tuple
 from sqlalchemy.orm import Session
 from app.models import Program, Post, PostComment
 from app.scrapers.gwangjin_lib import GwangjinLibScraper
@@ -9,6 +12,16 @@ from app.scrapers.seongdong_care import SeongdongCareScraper
 from app.scrapers.familynet import FamilyNetScraper
 
 logger = logging.getLogger(__name__)
+
+def load_fallback_scraped_data() -> List[Dict[str, Any]]:
+    json_path = os.path.join(os.path.dirname(__file__), "scraped_seed_data.json")
+    if os.path.exists(json_path):
+        try:
+            with open(json_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            logger.error(f"Fallback seed data load error: {e}")
+    return []
 
 # 실제 지자체 연계 공공/민간 프로그램 및 예약 데이터 (키즈카페, 놀이터, 보건소, 숲체험, 백화점/마트 문센, 북스타트, 시간제보육)
 CURATED_OFFICIAL_DATA = [
@@ -428,50 +441,112 @@ async def sync_all_data(db: Session) -> dict:
     from app.database import create_tables
     create_tables()
 
-    scrapers = [
-        GwangjinCareScraper(),
-        GwangjinSportsScraper(),
-        SeongdongCareScraper(),
-        GwangjinLibScraper(),
-        FamilyNetScraper()
+    scrapers_config: List[Tuple[Any, str, str, str]] = [
+        (GwangjinCareScraper(), "광진구육아종합지원센터", "광진구", "육아종합지원센터"),
+        (GwangjinSportsScraper(), "광진구시설관리공단", "광진구", "구민체육센터"),
+        (SeongdongCareScraper(), "성동구육아종합지원센터", "성동구", "육아종합지원센터"),
+        (GwangjinLibScraper(), "광진정보도서관", "광진구", "구립도서관"),
+        (FamilyNetScraper(), "가족센터", "광진구", "가족센터"),
     ]
-    
-    total_added = 0
-    total_updated = 0
+
+    fallback_data = load_fallback_scraped_data()
     errors = []
-    
-    # 1. 스크래퍼 실행
-    all_scraped_items = []
-    for scraper in scrapers:
+
+    # 1. 스크래퍼 병렬 수집 (각 스크래퍼 최대 10초 대기)
+    async def run_scraper(scraper, name, district, category):
         try:
-            items = await scraper.scrape()
-            all_scraped_items.extend(items)
+            items = await asyncio.wait_for(scraper.scrape(), timeout=12.0)
+            if items and len(items) > 0:
+                return (scraper, name, district, category, items, None)
+            else:
+                return (scraper, name, district, category, None, f"{name}: 수집된 데이터 없음 (빈 결과)")
         except Exception as e:
-            msg = f"{scraper.name} 수집 중 오류: {str(e)}"
-            logger.error(msg)
-            errors.append(msg)
-            
-    # 2. 공식 큐레이션 데이터 결합
-    all_scraped_items.extend(CURATED_OFFICIAL_DATA)
-    
-    # 3. DB 초기화 후 정규화 저장
-    db.query(Program).delete()
-    
-    for item in all_scraped_items:
+            msg = f"{name} 수집 중 오류: {str(e)}"
+            logger.warning(msg)
+            return (scraper, name, district, category, None, msg)
+
+    tasks = [run_scraper(s, n, d, c) for s, n, d, c in scrapers_config]
+    scrape_results = await asyncio.gather(*tasks)
+
+    # 2. 공식 큐레이션 데이터 항상 안전하게 동기화 (Upsert)
+    curated_titles = {item["title"] for item in CURATED_OFFICIAL_DATA}
+    db.query(Program).filter(Program.title.in_(curated_titles)).delete(synchronize_session=False)
+    for item in CURATED_OFFICIAL_DATA:
         try:
-            new_prog = Program(**item)
-            db.add(new_prog)
-            total_added += 1
+            db.add(Program(**item))
         except Exception as e:
-            errors.append(f"DB 저장 오류 ({item.get('title')}): {str(e)}")
-            
+            errors.append(f"큐레이션 저장 오류 ({item.get('title')}): {str(e)}")
+
+    added_titles = set(curated_titles)
+    for p in db.query(Program).all():
+        added_titles.add(p.title)
+
+    # 3. 기관별 데이터 처리: 수집 성공 시 갱신, 수집 실패(해외 IP 차단/타임아웃) 시 기존 데이터 보존
+    for scraper, name, district, category, items, err in scrape_results:
+        if err:
+            errors.append(err)
+
+        # 기존 DB에 저장되어 있는 해당 기관/카테고리 데이터 조회
+        existing_items = db.query(Program).filter(
+            Program.category == category,
+            Program.district.contains(district),
+            ~Program.title.in_(curated_titles)
+        ).all()
+
+        if items and len(items) > 0:
+            # 실시간 수집 성공: 기존 데이터 교체 및 최신화
+            logger.info(f"[{name}] 실시간 수집 성공 ({len(items)}건) -> DB 갱신")
+            for ex in existing_items:
+                db.delete(ex)
+                if ex.title in added_titles:
+                    added_titles.discard(ex.title)
+            for item in items:
+                if item.get("title") not in added_titles:
+                    try:
+                        db.add(Program(**item))
+                        added_titles.add(item.get("title"))
+                    except Exception as e:
+                        errors.append(f"DB 저장 오류 ({item.get('title')}): {str(e)}")
+        else:
+            # 실시간 수집 실패 (해외 IP 차단 또는 네트워크 오류)
+            if existing_items and len(existing_items) > 0:
+                # 기존 데이터가 이미 존재하므로 삭제하지 않고 안전하게 보존!
+                logger.info(f"[{name}] 실시간 수집 불가/실패 -> 기존 DB 데이터({len(existing_items)}건) 보존 유지")
+            else:
+                # DB가 비어있는 최초 실행 상태인 경우 Fallback 시드 데이터 로드
+                fb_items = [
+                    fb for fb in fallback_data
+                    if (fb.get("category") == category or district in fb.get("district", "")) and fb.get("title") not in added_titles
+                ]
+                logger.info(f"[{name}] DB 비어있음 -> Fallback 시드 데이터({len(fb_items)}건) 로드")
+                for fb in fb_items:
+                    if fb.get("title") not in added_titles:
+                        try:
+                            db.add(Program(**fb))
+                            added_titles.add(fb.get("title"))
+                        except Exception as e:
+                            errors.append(f"시드 저장 오류 ({fb.get('title')}): {str(e)}")
+
+    # 4. 최종 안전망: DB 프로그램 중 fallback_data에서 누락된 것이 있으면 보충
+    for fb in fallback_data:
+        if fb.get("title") not in added_titles:
+            try:
+                db.add(Program(**fb))
+                added_titles.add(fb.get("title"))
+            except Exception as e:
+                logger.debug(f"Safety net seed load error: {e}")
+
     db.commit()
     seed_community_posts(db)
 
+    total_programs = db.query(Program).count()
+    open_programs = db.query(Program).filter(Program.status == "접수중").count()
+    logger.info(f"동기화 완료: 총 {total_programs}건 (접수중 {open_programs}건)")
+
     return {
-        "total_added": total_added,
-        "total_updated": total_updated,
-        "total_programs": db.query(Program).count(),
+        "total_added": total_programs,
+        "total_updated": 0,
+        "total_programs": total_programs,
         "errors": errors
     }
 
