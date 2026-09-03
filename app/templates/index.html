@@ -389,6 +389,41 @@
         </div>
     </div>
 
+    <!-- 이미지 고화질 확대 라이트박스 뷰어 -->
+    <div class="lightbox-backdrop" id="image-lightbox-modal" style="display: none;">
+        <div class="lightbox-toolbar">
+            <div class="lightbox-title-wrap">
+                <i data-lucide="image" class="icon-sm"></i>
+                <span class="lightbox-title" id="lightbox-title">포스터 크게 보기</span>
+            </div>
+            <div class="lightbox-actions">
+                <button type="button" class="btn-lightbox" id="btn-zoom-in" title="확대 (+)">
+                    <i data-lucide="zoom-in" class="icon-sm"></i> <span class="btn-text">확대</span>
+                </button>
+                <button type="button" class="btn-lightbox" id="btn-zoom-out" title="축소 (-)">
+                    <i data-lucide="zoom-out" class="icon-sm"></i> <span class="btn-text">축소</span>
+                </button>
+                <button type="button" class="btn-lightbox" id="btn-zoom-reset" title="원래 크기 (100%)">
+                    <i data-lucide="maximize-2" class="icon-sm"></i> <span class="btn-text">초기화</span>
+                </button>
+                <a href="#" target="_blank" rel="noopener noreferrer" class="btn-lightbox" id="btn-lightbox-external" title="새 탭에서 원본 열기">
+                    <i data-lucide="external-link" class="icon-sm"></i> <span class="btn-text">새 탭 원본</span>
+                </a>
+                <button type="button" class="btn-lightbox btn-lightbox-close" id="btn-lightbox-close" title="닫기 (ESC)">
+                    <i data-lucide="x" class="icon-sm"></i>
+                </button>
+            </div>
+        </div>
+        <div class="lightbox-content-area" id="lightbox-content-area">
+            <div class="lightbox-img-wrapper" id="lightbox-img-wrapper">
+                <img src="" alt="확대 이미지" class="lightbox-img" id="lightbox-img" draggable="false" />
+            </div>
+        </div>
+        <div class="lightbox-hint">
+            <span><i data-lucide="move" class="icon-xs"></i> 마우스 드래그 또는 터치로 이동할 수 있습니다</span>
+        </div>
+    </div>
+
     <!-- 하단 토스트 알림 -->
     <div class="toast" id="toast-message"></div>
 

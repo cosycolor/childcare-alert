@@ -495,5 +495,40 @@
     font-size: 12px;
     letter-spacing: 1px;
   }
+
+  /* 9. 이미지 라이트박스 모바일 최적화 */
+  .lightbox-toolbar {
+    height: 52px;
+    padding: 0 12px;
+  }
+
+  .lightbox-title-wrap {
+    font-size: 12.5px;
+    max-width: 45%;
+  }
+
+  .lightbox-actions {
+    gap: 4px;
+  }
+
+  .btn-lightbox {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  .btn-lightbox .btn-text {
+    display: none; /* 모바일에서 텍스트 숨기고 아이콘만 노출 */
+  }
+
+  .btn-lightbox-close {
+    padding: 6px 8px;
+  }
+
+  .lightbox-hint {
+    font-size: 11px;
+    height: 32px;
+    padding: 0 8px;
+  }
 }
+
 

@@ -181,8 +181,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (e.target === elements.modal) closeModal();
         });
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && elements.modal.style.display !== 'none') {
-                closeModal();
+            if (e.key === 'Escape') {
+                if (lightboxModal && lightboxModal.style.display !== 'none') {
+                    closeLightbox();
+                } else if (elements.modal.style.display !== 'none') {
+                    closeModal();
+                }
             }
         });
 
@@ -769,7 +773,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // 모달 바디 렌더링 (이미지 또는 구조화 테이블)
         let bodyHtml = '';
         if (prog.image_url) {
-            bodyHtml += `<img src="${prog.image_url}" alt="${prog.title} 홍보 포스터" class="poster-viewer" />`;
+            bodyHtml += `
+                <div class="poster-container" id="modal-poster-wrap" title="클릭하여 고화질 확대 보기">
+                    <img src="${prog.image_url}" alt="${prog.title} 홍보 포스터" class="poster-viewer" />
+                    <div class="poster-overlay">
+                        <span class="poster-zoom-badge">
+                            <i data-lucide="zoom-in" class="icon-xs"></i> 🔍 클릭하여 고화질 확대 보기
+                        </span>
+                    </div>
+                </div>
+            `;
         }
 
         let detailObj = {};
@@ -812,6 +825,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         elements.modalBody.innerHTML = bodyHtml;
         elements.btnModalApply.href = prog.origin_url;
+
+        // 포스터 이미지 클릭 시 라이트박스 열기
+        const posterWrap = elements.modalBody.querySelector('#modal-poster-wrap');
+        if (posterWrap) {
+            posterWrap.addEventListener('click', () => {
+                openLightbox(prog.image_url, prog.title);
+            });
+        }
 
         // 해당 프로그램 후기 불러오기
         fetchReviews(prog.id);
@@ -995,6 +1016,192 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#039;')
             .replace(/\n/g, '<br/>');
+    }
+
+    // ==========================================
+    // 이미지 고화질 확대 라이트박스 뷰어 매니저
+    // ==========================================
+    const lightboxModal = document.getElementById('image-lightbox-modal');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxTitle = document.getElementById('lightbox-title');
+    const btnZoomIn = document.getElementById('btn-zoom-in');
+    const btnZoomOut = document.getElementById('btn-zoom-out');
+    const btnZoomReset = document.getElementById('btn-zoom-reset');
+    const btnLightboxExternal = document.getElementById('btn-lightbox-external');
+    const btnLightboxClose = document.getElementById('btn-lightbox-close');
+
+    let zoomScale = 1.0;
+    let panX = 0;
+    let panY = 0;
+    let isDragging = false;
+    let startDragX = 0;
+    let startDragY = 0;
+
+    function openLightbox(imageUrl, title) {
+        if (!lightboxModal || !lightboxImg) return;
+
+        lightboxImg.src = imageUrl;
+        if (lightboxTitle) lightboxTitle.textContent = title ? `${title}` : '포스터 확대 보기';
+        if (btnLightboxExternal) btnLightboxExternal.href = imageUrl;
+
+        // 초기화
+        resetLightboxTransform();
+
+        lightboxModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+    }
+
+    function closeLightbox() {
+        if (!lightboxModal) return;
+        lightboxModal.style.display = 'none';
+        resetLightboxTransform();
+        if (!elements.modal || elements.modal.style.display === 'none') {
+            document.body.style.overflow = '';
+        }
+    }
+
+    function resetLightboxTransform() {
+        zoomScale = 1.0;
+        panX = 0;
+        panY = 0;
+        updateLightboxTransform();
+    }
+
+    function updateLightboxTransform() {
+        if (!lightboxImg) return;
+        lightboxImg.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
+        if (zoomScale > 1.0) {
+            lightboxImg.classList.add('is-zoomed');
+        } else {
+            lightboxImg.classList.remove('is-zoomed');
+        }
+    }
+
+    function setZoom(newScale) {
+        zoomScale = Math.max(0.5, Math.min(newScale, 4.0));
+        if (zoomScale <= 1.0) {
+            panX = 0;
+            panY = 0;
+        }
+        updateLightboxTransform();
+    }
+
+    if (lightboxModal) {
+        if (btnZoomIn) {
+            btnZoomIn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                setZoom(zoomScale + 0.3);
+            });
+        }
+        if (btnZoomOut) {
+            btnZoomOut.addEventListener('click', (e) => {
+                e.stopPropagation();
+                setZoom(zoomScale - 0.3);
+            });
+        }
+        if (btnZoomReset) {
+            btnZoomReset.addEventListener('click', (e) => {
+                e.stopPropagation();
+                resetLightboxTransform();
+            });
+        }
+        if (btnLightboxClose) {
+            btnLightboxClose.addEventListener('click', (e) => {
+                e.stopPropagation();
+                closeLightbox();
+            });
+        }
+
+        // 배경 클릭 시 닫기
+        lightboxModal.addEventListener('click', (e) => {
+            if (e.target === lightboxModal || e.target.id === 'lightbox-content-area' || e.target.id === 'lightbox-img-wrapper') {
+                closeLightbox();
+            }
+        });
+
+        // 마우스 휠 줌
+        const contentArea = document.getElementById('lightbox-content-area');
+        if (contentArea) {
+            contentArea.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? -0.2 : 0.2;
+                setZoom(zoomScale + delta);
+            }, { passive: false });
+        }
+
+        // 마우스 드래그 이동
+        lightboxImg.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startDragX = e.clientX - panX;
+            startDragY = e.clientY - panY;
+            lightboxImg.classList.add('grabbing');
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            panX = e.clientX - startDragX;
+            panY = e.clientY - startDragY;
+            updateLightboxTransform();
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (isDragging) {
+                isDragging = false;
+                lightboxImg.classList.remove('grabbing');
+            }
+        });
+
+        // 터치 제스처 (모바일 드래그 & 더블탭 확대 & 핀치 줌)
+        let lastTouchTime = 0;
+        let initialTouchDistance = 0;
+        let initialScale = 1.0;
+
+        lightboxImg.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                const now = Date.now();
+                if (now - lastTouchTime < 300) {
+                    // 더블탭 줌 토글
+                    setZoom(zoomScale > 1.2 ? 1.0 : 2.2);
+                    lastTouchTime = 0;
+                    return;
+                }
+                lastTouchTime = now;
+                isDragging = true;
+                startDragX = e.touches[0].clientX - panX;
+                startDragY = e.touches[0].clientY - panY;
+            } else if (e.touches.length === 2) {
+                isDragging = false;
+                initialTouchDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                initialScale = zoomScale;
+            }
+        }, { passive: true });
+
+        lightboxImg.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 1 && isDragging) {
+                panX = e.touches[0].clientX - startDragX;
+                panY = e.touches[0].clientY - startDragY;
+                updateLightboxTransform();
+            } else if (e.touches.length === 2 && initialTouchDistance > 0) {
+                const currentDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                const scaleFactor = currentDistance / initialTouchDistance;
+                setZoom(initialScale * scaleFactor);
+            }
+        }, { passive: true });
+
+        lightboxImg.addEventListener('touchend', () => {
+            isDragging = false;
+            initialTouchDistance = 0;
+        }, { passive: true });
     }
 
     // 토스트 메시지
