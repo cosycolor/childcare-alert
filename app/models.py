@@ -44,3 +44,33 @@ class Review(Base):
     content = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
+
+class Post(Base):
+    __tablename__ = "posts"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    category = Column(String(50), nullable=False, default="같이 가요", index=True)  # 같이 가요, 육아 수다, 나눔/드림
+    district = Column(String(50), nullable=False, default="전체", index=True)        # 광진구, 성동구, 전체
+    target_age_group = Column(String(50), nullable=False, default="전체", index=True)# 0~12개월, 13~24개월, 25~36개월, 전체
+    program_id = Column(Integer, nullable=True, index=True)                          # 연계된 프로그램 ID (선택)
+    program_title = Column(String(255), nullable=True)                              # 연계된 프로그램명 (선택)
+    title = Column(String(255), nullable=False, index=True)
+    content = Column(Text, nullable=False)
+    nickname = Column(String(50), nullable=False)
+    password = Column(String(50), nullable=False)                                   # 삭제용 4자리 비밀번호
+    contact = Column(String(255), nullable=True)                                    # 오픈카톡 링크 or 연락처
+    status = Column(String(50), nullable=False, default="모집중", index=True)       # 모집중, 모집완료, 일반
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+
+class PostComment(Base):
+    __tablename__ = "post_comments"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    post_id = Column(Integer, nullable=False, index=True)
+    nickname = Column(String(50), nullable=False)
+    password = Column(String(50), nullable=False)                                   # 삭제용 4자리 비밀번호
+    content = Column(Text, nullable=False)
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+

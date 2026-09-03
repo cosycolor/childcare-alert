@@ -26,10 +26,22 @@
                     <i data-lucide="sparkles" class="icon-brand"></i>
                 </div>
                 <div class="logo-text">
-                    <h1 class="service-title">아이랑 모아 <span class="badge-pilot">광진 · 성동 파일럿</span></h1>
+                    <h1 class="service-title">아이랑 모아 <span class="badge-pilot">광진 · 성동</span></h1>
                     <p class="service-sub">0~36개월 아기를 위한 공공/민간 육아 프로그램 캘린더 & 통합 알림</p>
                 </div>
             </div>
+
+            <!-- 메인 상단 탭 네비게이션 -->
+            <nav class="header-main-nav">
+                <button class="nav-tab-btn active" id="tab-btn-programs">
+                    <i data-lucide="calendar" class="icon-tab"></i> 프로그램 찾기
+                </button>
+                <button class="nav-tab-btn" id="tab-btn-community">
+                    <i data-lucide="messages-square" class="icon-tab"></i> 함께 모여요 <span class="nav-badge-new">동기
+                        모집</span>
+                </button>
+            </nav>
+
             <div class="header-actions">
                 <button id="btn-sync" class="btn btn-outline btn-sm">
                     <i data-lucide="refresh-cw" class="icon-sm"></i> 최신 정보 갱신
@@ -40,256 +52,353 @@
 
     <!-- 메인 컨테이너 -->
     <main class="container main-content">
-        <!-- 하이라이트 통계 요약 배너 -->
-        <section class="stats-banner" id="stats-banner">
-            <div class="stat-card stat-primary">
-                <div class="stat-icon">
-                    <i data-lucide="flame" class="icon-stat-primary"></i>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-label">지금 접수중인 프로그램</span>
-                    <span class="stat-value" id="stat-open">0건</span>
-                </div>
-            </div>
-            <div class="stat-card stat-secondary">
-                <div class="stat-icon">
-                    <i data-lucide="clock" class="icon-stat-secondary"></i>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-label">곧 열리는 접수예정</span>
-                    <span class="stat-value" id="stat-upcoming">0건</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i data-lucide="map-pin" class="icon-stat-neutral"></i>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-label">광진구 프로그램</span>
-                    <span class="stat-value" id="stat-gwangjin">0건</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i data-lucide="compass" class="icon-stat-neutral"></i>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-label">성동구 프로그램</span>
-                    <span class="stat-value" id="stat-seongdong">0건</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- 필터 및 제어 바 -->
-        <section class="controls-section">
-            <div class="filter-card">
-                <div class="filter-top-row">
-                    <!-- 검색 바 -->
-                    <div class="search-box">
-                        <i data-lucide="search" class="search-icon"></i>
-                        <input type="text" id="search-input" placeholder="프로그램명, 기관명, 교육내용 검색 (예: 북스타트, 마사지, 트니트니)" />
-                        <button id="search-clear" class="btn-clear" style="display:none;">
-                            <i data-lucide="x" class="icon-xs"></i>
-                        </button>
+        <!-- 1. [프로그램 찾기] 탭 콘텐츠 영역 -->
+        <div id="tab-content-programs" class="tab-pane active">
+            <!-- 하이라이트 통계 요약 배너 -->
+            <section class="stats-banner" id="stats-banner">
+                <div class="stat-card stat-primary">
+                    <div class="stat-icon">
+                        <i data-lucide="flame" class="icon-stat-primary"></i>
                     </div>
-
-                    <!-- 뷰 모드 스위처 (리스트 / 캘린더) -->
-                    <div class="view-switchers">
-                        <button id="view-list-btn" class="btn-view active" title="목록형 카드 보기">
-                            <i data-lucide="layout-grid" class="icon-view"></i> 리스트
-                        </button>
-                        <button id="view-calendar-btn" class="btn-view" title="월간 캘린더 보기">
-                            <i data-lucide="calendar" class="icon-view"></i> 캘린더
-                        </button>
+                    <div class="stat-info">
+                        <span class="stat-label">지금 접수중인 프로그램</span>
+                        <span class="stat-value" id="stat-open">0건</span>
                     </div>
                 </div>
-
-                <!-- 👶 우리 아기 생년월일 맞춤 필터 배너 -->
-                <div class="baby-age-filter-bar">
-                    <div class="baby-age-left">
-                        <div class="baby-icon-badge">
-                            <i data-lucide="baby" class="icon-baby"></i>
-                        </div>
-                        <div class="baby-label-wrap">
-                            <label for="baby-birthdate" class="baby-title">우리 아이 생년월일 맞춤 찾기</label>
-                            <span class="baby-desc">생년월일을 입력하면 지금 딱 신청 가능한 월령의 프로그램만 보여드려요!</span>
-                        </div>
+                <div class="stat-card stat-secondary">
+                    <div class="stat-icon">
+                        <i data-lucide="clock" class="icon-stat-secondary"></i>
                     </div>
-                    <div class="baby-input-wrap">
-                        <input type="text" id="baby-birthdate" class="input-date" placeholder="2025-11-29"
-                            onfocus="(this.type='date'); try{this.showPicker();}catch(e){}"
-                            onblur="if(!this.value) this.type='text'"
-                            min="2023-01-01" max="2026-12-31" />
-                        <div id="baby-calc-result" class="baby-calc-badge" style="display: none;">
-                            <span id="baby-months-text">생후 0개월</span>
-                            <button id="btn-clear-baby-date" class="btn-clear-baby" title="생년월일 필터 해제">
+                    <div class="stat-info">
+                        <span class="stat-label">곧 열리는 접수예정</span>
+                        <span class="stat-value" id="stat-upcoming">0건</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i data-lucide="map-pin" class="icon-stat-neutral"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">광진구 프로그램</span>
+                        <span class="stat-value" id="stat-gwangjin">0건</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i data-lucide="compass" class="icon-stat-neutral"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">성동구 프로그램</span>
+                        <span class="stat-value" id="stat-seongdong">0건</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 필터 및 제어 바 -->
+            <section class="controls-section">
+                <div class="filter-card">
+                    <div class="filter-top-row">
+                        <!-- 검색 바 -->
+                        <div class="search-box">
+                            <i data-lucide="search" class="search-icon"></i>
+                            <input type="text" id="search-input"
+                                placeholder="프로그램명, 기관명, 교육내용 검색 (예: 북스타트, 마사지, 트니트니)" />
+                            <button id="search-clear" class="btn-clear" style="display:none;">
                                 <i data-lucide="x" class="icon-xs"></i>
                             </button>
                         </div>
-                    </div>
-                </div>
 
-                <!-- 칩스 필터 그룹 -->
-                <div class="filter-chips-wrapper">
-                    <!-- 지역 필터 -->
-                    <div class="filter-group">
-                        <span class="filter-title">지역:</span>
-                        <div class="chips-list" id="filter-district">
-                            <button class="chip active" data-value="전체">전체</button>
-                            <button class="chip" data-value="광진구">광진구</button>
-                            <button class="chip" data-value="성동구">성동구</button>
-                        </div>
-                    </div>
-
-                    <!-- 아기 월령 필터 -->
-                    <div class="filter-group">
-                        <span class="filter-title">아기 월령:</span>
-                        <div class="chips-list" id="filter-age">
-                            <button class="chip active" data-value="전체">전체 (0~36개월)</button>
-                            <button class="chip" data-value="0~12개월">0~12개월 (영아)</button>
-                            <button class="chip" data-value="13~24개월">13~24개월 (걸음마)</button>
-                            <button class="chip" data-value="25~36개월">25~36개월 (유아)</button>
-                        </div>
-                    </div>
-
-                    <!-- 비용 필터 (무료 / 유료) -->
-                    <div class="filter-group">
-                        <span class="filter-title">비용:</span>
-                        <div class="chips-list" id="filter-fee">
-                            <button class="chip active" data-value="전체">전체</button>
-                            <button class="chip" data-value="무료">
-                                <i data-lucide="gift" class="icon-chip"></i> 무료만
+                        <!-- 뷰 모드 스위처 (리스트 / 캘린더) -->
+                        <div class="view-switchers">
+                            <button id="view-list-btn" class="btn-view active" title="목록형 카드 보기">
+                                <i data-lucide="layout-grid" class="icon-view"></i> 리스트
                             </button>
-                            <button class="chip" data-value="유료">
-                                <i data-lucide="credit-card" class="icon-chip"></i> 유료만
+                            <button id="view-calendar-btn" class="btn-view" title="월간 캘린더 보기">
+                                <i data-lucide="calendar" class="icon-view"></i> 캘린더
                             </button>
                         </div>
                     </div>
 
-                    <!-- 기관 유형 필터 -->
-                    <div class="filter-group">
-                        <span class="filter-title">기관:</span>
-                        <div class="chips-list" id="filter-category">
-                            <button class="chip active" data-value="전체">전체</button>
-                            <button class="chip" data-value="공공놀이터/키즈카페">
-                                <i data-lucide="smile" class="icon-chip"></i> 키즈카페/놀이터
-                            </button>
-                            <button class="chip" data-value="보건소">
-                                <i data-lucide="heart-pulse" class="icon-chip"></i> 보건소
-                            </button>
-                            <button class="chip" data-value="숲체험/공원">
-                                <i data-lucide="trees" class="icon-chip"></i> 숲체험/공원
-                            </button>
-                            <button class="chip" data-value="백화점/마트 문센">
-                                <i data-lucide="shopping-bag" class="icon-chip"></i> 백화점/마트 문센
-                            </button>
-                            <button class="chip" data-value="육아종합지원센터">
-                                <i data-lucide="building-2" class="icon-chip"></i> 육아종합지원센터
-                            </button>
-                            <button class="chip" data-value="구립도서관">
-                                <i data-lucide="book-open" class="icon-chip"></i> 구립도서관
-                            </button>
-                            <button class="chip" data-value="가족센터">
-                                <i data-lucide="users" class="icon-chip"></i> 가족센터
-                            </button>
-                            <button class="chip" data-value="복합체험관">
-                                <i data-lucide="sparkles" class="icon-chip"></i> 복합체험관 (상상나라/아이사랑)
-                            </button>
-                            <button class="chip" data-value="구민체육센터">
-                                <i data-lucide="dumbbell" class="icon-chip"></i> 구민체육센터
-                            </button>
-                            <button class="chip" data-value="시간제보육">
-                                <i data-lucide="hourglass" class="icon-chip"></i> 시간제보육
-                            </button>
+                    <!-- 👶 우리 아기 생년월일 맞춤 필터 배너 -->
+                    <div class="baby-age-filter-bar">
+                        <div class="baby-age-left">
+                            <div class="baby-icon-badge">
+                                <i data-lucide="baby" class="icon-baby"></i>
+                            </div>
+                            <div class="baby-label-wrap">
+                                <label for="baby-birthdate" class="baby-title">우리 아이 생년월일 맞춤 찾기</label>
+                                <span class="baby-desc">생년월일을 입력하면 지금 딱 신청 가능한 월령의 프로그램만 보여드려요!</span>
+                            </div>
+                        </div>
+                        <div class="baby-input-wrap">
+                            <input type="text" id="baby-birthdate" class="input-date" placeholder="2025-11-29"
+                                onfocus="(this.type='date'); try{this.showPicker();}catch(e){}"
+                                onblur="if(!this.value) this.type='text'" min="2023-01-01" max="2026-12-31" />
+                            <div id="baby-calc-result" class="baby-calc-badge" style="display: none;">
+                                <span id="baby-months-text">생후 0개월</span>
+                                <button id="btn-clear-baby-date" class="btn-clear-baby" title="생년월일 필터 해제">
+                                    <i data-lucide="x" class="icon-xs"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- 접수 상태 필터 -->
-                    <div class="filter-group">
-                        <span class="filter-title">접수 상태:</span>
-                        <div class="chips-list" id="filter-status">
-                            <button class="chip active" data-value="전체">전체</button>
-                            <button class="chip" data-value="접수중">
-                                <i data-lucide="check-circle" class="icon-chip icon-open"></i> 접수중
-                            </button>
-                            <button class="chip" data-value="접수예정">
-                                <i data-lucide="clock" class="icon-chip icon-upcoming"></i> 접수예정
-                            </button>
-                            <button class="chip" data-value="마감">마감</button>
+                    <!-- 칩스 필터 그룹 -->
+                    <div class="filter-chips-wrapper">
+                        <!-- 지역 필터 -->
+                        <div class="filter-group">
+                            <span class="filter-title">지역:</span>
+                            <div class="chips-list" id="filter-district">
+                                <button class="chip active" data-value="전체">전체</button>
+                                <button class="chip" data-value="광진구">광진구</button>
+                                <button class="chip" data-value="성동구">성동구</button>
+                            </div>
+                        </div>
+
+                        <!-- 아기 월령 필터 -->
+                        <div class="filter-group">
+                            <span class="filter-title">아기 월령:</span>
+                            <div class="chips-list" id="filter-age">
+                                <button class="chip active" data-value="전체">전체 (0~36개월)</button>
+                                <button class="chip" data-value="0~12개월">0~12개월 (영아)</button>
+                                <button class="chip" data-value="13~24개월">13~24개월 (걸음마)</button>
+                                <button class="chip" data-value="25~36개월">25~36개월 (유아)</button>
+                            </div>
+                        </div>
+
+                        <!-- 비용 필터 (무료 / 유료) -->
+                        <div class="filter-group">
+                            <span class="filter-title">비용:</span>
+                            <div class="chips-list" id="filter-fee">
+                                <button class="chip active" data-value="전체">전체</button>
+                                <button class="chip" data-value="무료">
+                                    <i data-lucide="gift" class="icon-chip"></i> 무료만
+                                </button>
+                                <button class="chip" data-value="유료">
+                                    <i data-lucide="credit-card" class="icon-chip"></i> 유료만
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 기관 유형 필터 -->
+                        <div class="filter-group">
+                            <span class="filter-title">기관:</span>
+                            <div class="chips-list" id="filter-category">
+                                <button class="chip active" data-value="전체">전체</button>
+                                <button class="chip" data-value="공공놀이터/키즈카페">
+                                    <i data-lucide="smile" class="icon-chip"></i> 키즈카페/놀이터
+                                </button>
+                                <button class="chip" data-value="보건소">
+                                    <i data-lucide="heart-pulse" class="icon-chip"></i> 보건소
+                                </button>
+                                <button class="chip" data-value="숲체험/공원">
+                                    <i data-lucide="trees" class="icon-chip"></i> 숲체험/공원
+                                </button>
+                                <button class="chip" data-value="백화점/마트 문센">
+                                    <i data-lucide="shopping-bag" class="icon-chip"></i> 백화점/마트 문센
+                                </button>
+                                <button class="chip" data-value="육아종합지원센터">
+                                    <i data-lucide="building-2" class="icon-chip"></i> 육아종합지원센터
+                                </button>
+                                <button class="chip" data-value="구립도서관">
+                                    <i data-lucide="book-open" class="icon-chip"></i> 구립도서관
+                                </button>
+                                <button class="chip" data-value="가족센터">
+                                    <i data-lucide="users" class="icon-chip"></i> 가족센터
+                                </button>
+                                <button class="chip" data-value="복합체험관">
+                                    <i data-lucide="sparkles" class="icon-chip"></i> 복합체험관 (상상나라/아이사랑)
+                                </button>
+                                <button class="chip" data-value="구민체육센터">
+                                    <i data-lucide="dumbbell" class="icon-chip"></i> 구민체육센터
+                                </button>
+                                <button class="chip" data-value="시간제보육">
+                                    <i data-lucide="hourglass" class="icon-chip"></i> 시간제보육
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 접수 상태 필터 -->
+                        <div class="filter-group">
+                            <span class="filter-title">접수 상태:</span>
+                            <div class="chips-list" id="filter-status">
+                                <button class="chip active" data-value="전체">전체</button>
+                                <button class="chip" data-value="접수중">
+                                    <i data-lucide="check-circle" class="icon-chip icon-open"></i> 접수중
+                                </button>
+                                <button class="chip" data-value="접수예정">
+                                    <i data-lucide="clock" class="icon-chip icon-upcoming"></i> 접수예정
+                                </button>
+                                <button class="chip" data-value="마감">마감</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- 결과 목록 영역 (리스트 뷰) -->
-        <section id="list-view-container" class="content-view">
-            <div class="results-header">
-                <div class="results-count">
-                    총 <strong id="result-total-count">0</strong>개의 영유아 프로그램
+            <!-- 결과 목록 영역 (리스트 뷰) -->
+            <section id="list-view-container" class="content-view">
+                <div class="results-header">
+                    <div class="results-count">
+                        총 <strong id="result-total-count">0</strong>개의 영유아 프로그램
+                    </div>
+                    <div class="results-controls">
+                        <label for="sort-select" class="sort-label">정렬:</label>
+                        <select id="sort-select" class="sort-select">
+                            <option value="status">신청 오픈순 (접수중 우선)</option>
+                            <option value="free_first">무료 프로그램 먼저</option>
+                            <option value="paid_first">유료 프로그램 먼저</option>
+                            <option value="title">가나다순</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="results-controls">
-                    <label for="sort-select" class="sort-label">정렬:</label>
-                    <select id="sort-select" class="sort-select">
-                        <option value="status">신청 오픈순 (접수중 우선)</option>
-                        <option value="free_first">무료 프로그램 먼저</option>
-                        <option value="paid_first">유료 프로그램 먼저</option>
-                        <option value="title">가나다순</option>
-                    </select>
+
+                <div class="programs-grid" id="programs-grid">
+                    <!-- 프로그램 카드들이 JS로 동적 렌더링됩니다 -->
                 </div>
-            </div>
 
-            <div class="programs-grid" id="programs-grid">
-                <!-- 프로그램 카드들이 JS로 동적 렌더링됩니다 -->
-            </div>
-
-            <!-- 페이지네이션 컨트롤 -->
-            <div class="pagination-container" id="pagination-container" style="display: none;">
-                <!-- JS로 동적 생성됩니다 -->
-            </div>
-
-            <!-- 검색 결과 없음 상태 -->
-            <div class="empty-state" id="empty-state" style="display: none;">
-                <div class="empty-icon">
-                    <i data-lucide="search-x" class="icon-empty"></i>
+                <!-- 페이지네이션 컨트롤 -->
+                <div class="pagination-container" id="pagination-container" style="display: none;">
+                    <!-- JS로 동적 생성됩니다 -->
                 </div>
-                <h3>해당 조건에 맞는 프로그램이 없습니다</h3>
-                <p>필터 조건을 초기화하거나 다른 검색어로 검색해보세요.</p>
-                <button id="btn-reset-filters" class="btn btn-primary btn-sm">
-                    <i data-lucide="rotate-ccw" class="icon-sm"></i> 필터 초기화
-                </button>
-            </div>
-        </section>
 
-        <!-- 캘린더 뷰 컨테이너 -->
-        <section id="calendar-view-container" class="content-view" style="display: none;">
-            <div class="calendar-card">
-                <div class="calendar-header">
-                    <button id="cal-prev" class="btn-cal-nav">
-                        <i data-lucide="chevron-left" class="icon-sm"></i> 이전 달
+                <!-- 검색 결과 없음 상태 -->
+                <div class="empty-state" id="empty-state" style="display: none;">
+                    <div class="empty-icon">
+                        <i data-lucide="search-x" class="icon-empty"></i>
+                    </div>
+                    <h3>해당 조건에 맞는 프로그램이 없습니다</h3>
+                    <p>필터 조건을 초기화하거나 다른 검색어로 검색해보세요.</p>
+                    <button id="btn-reset-filters" class="btn btn-primary btn-sm">
+                        <i data-lucide="rotate-ccw" class="icon-sm"></i> 필터 초기화
                     </button>
-                    <h2 id="cal-month-title" class="calendar-month-title">2026년 9월</h2>
-                    <button id="cal-next" class="btn-cal-nav">
-                        다음 달 <i data-lucide="chevron-right" class="icon-sm"></i>
+                </div>
+            </section>
+
+            <!-- 캘린더 뷰 컨테이너 -->
+            <section id="calendar-view-container" class="content-view" style="display: none;">
+                <div class="calendar-card">
+                    <div class="calendar-header">
+                        <button id="cal-prev" class="btn-cal-nav">
+                            <i data-lucide="chevron-left" class="icon-sm"></i> 이전 달
+                        </button>
+                        <h2 id="cal-month-title" class="calendar-month-title">2026년 9월</h2>
+                        <button id="cal-next" class="btn-cal-nav">
+                            다음 달 <i data-lucide="chevron-right" class="icon-sm"></i>
+                        </button>
+                    </div>
+                    <div class="calendar-weekdays">
+                        <div class="weekday sun">일</div>
+                        <div class="weekday">월</div>
+                        <div class="weekday">화</div>
+                        <div class="weekday">수</div>
+                        <div class="weekday">목</div>
+                        <div class="weekday">금</div>
+                        <div class="weekday sat">토</div>
+                    </div>
+                    <div class="calendar-days-grid" id="calendar-days">
+                        <!-- 캘린더 일자 칸들이 JS로 생성됩니다 -->
+                    </div>
+                </div>
+                <div class="calendar-selected-info" id="calendar-selected-info">
+                    <!-- 선택된 날짜의 이벤트 목록 -->
+                </div>
+            </section>
+        </div><!-- /#tab-content-programs -->
+
+        <!-- 2. [함께 모여요 (커뮤니티)] 탭 콘텐츠 영역 -->
+        <div id="tab-content-community" class="tab-pane" style="display: none;">
+            <!-- 커뮤니티 헤더 배너 -->
+            <section class="community-banner">
+                <div class="community-banner-content">
+                    <div class="community-banner-text">
+                        <span class="community-badge-sub">우리동네 육아 이웃</span>
+                        <h2 class="community-banner-title">함께 신청하고, 나누고, 소통해요 💬</h2>
+                        <p class="community-banner-desc">문센/키즈카페 동기 구하기, 월령별 육아 꿀팁, 아기용품 나눔까지 이웃과 함께해보세요!</p>
+                    </div>
+                    <button id="btn-open-post-write" class="btn btn-primary btn-write-post">
+                        <i data-lucide="plus-circle" class="icon-sm"></i> 글쓰기 / 동기 모집
                     </button>
                 </div>
-                <div class="calendar-weekdays">
-                    <div class="weekday sun">일</div>
-                    <div class="weekday">월</div>
-                    <div class="weekday">화</div>
-                    <div class="weekday">수</div>
-                    <div class="weekday">목</div>
-                    <div class="weekday">금</div>
-                    <div class="weekday sat">토</div>
+            </section>
+
+            <!-- 커뮤니티 필터 & 검색 바 -->
+            <section class="community-controls-card">
+                <div class="community-filter-row">
+                    <!-- 카테고리 탭 칩스 -->
+                    <div class="community-category-chips" id="community-category-filter">
+                        <button class="comm-chip active" data-category="전체">전체 보기</button>
+                        <button class="comm-chip" data-category="같이 가요">
+                            <i data-lucide="users" class="icon-xs"></i> 🤝 같이 가요 (동행 모집)
+                        </button>
+                        <button class="comm-chip" data-category="육아 수다">
+                            <i data-lucide="message-circle" class="icon-xs"></i> 💬 육아 수다 & 꿀팁
+                        </button>
+                        <button class="comm-chip" data-category="나눔/드림">
+                            <i data-lucide="gift" class="icon-xs"></i> 🎁 나눔 & 드림
+                        </button>
+                    </div>
+
+                    <!-- 검색 박스 -->
+                    <div class="search-box comm-search-box">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" id="comm-search-input" placeholder="제목, 내용, 키워드 검색" />
+                        <button id="comm-search-clear" class="btn-clear" style="display:none;">
+                            <i data-lucide="x" class="icon-xs"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="calendar-days-grid" id="calendar-days">
-                    <!-- 캘린더 일자 칸들이 JS로 생성됩니다 -->
+
+                <!-- 2차 필터 (지역 / 모집 상태) -->
+                <div class="community-sub-filter-row">
+                    <div class="comm-sub-group">
+                        <span class="comm-filter-lbl">지역:</span>
+                        <div class="comm-sub-chips" id="community-district-filter">
+                            <button class="sub-chip active" data-district="전체">전체</button>
+                            <button class="sub-chip" data-district="광진구">광진구</button>
+                            <button class="sub-chip" data-district="성동구">성동구</button>
+                        </div>
+                    </div>
+                    <div class="comm-sub-group">
+                        <span class="comm-filter-lbl">상태:</span>
+                        <div class="comm-sub-chips" id="community-status-filter">
+                            <button class="sub-chip active" data-status="전체">전체</button>
+                            <button class="sub-chip" data-status="모집중">모집중만 보기</button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="calendar-selected-info" id="calendar-selected-info">
-                <!-- 선택된 날짜의 이벤트 목록 -->
-            </div>
-        </section>
+            </section>
+
+            <!-- 커뮤니티 게시글 목록 -->
+            <section class="community-list-section">
+                <div class="comm-results-header">
+                    <div class="comm-results-count">
+                        총 <strong id="comm-total-count">0</strong>개의 이야기
+                    </div>
+                </div>
+
+                <div class="community-grid" id="community-posts-grid">
+                    <!-- JS로 게시글 카드 렌더링 -->
+                </div>
+
+                <!-- 커뮤니티 빈 상태 -->
+                <div class="empty-state" id="comm-empty-state" style="display: none;">
+                    <div class="empty-icon">
+                        <i data-lucide="message-square-dashed" class="icon-empty"></i>
+                    </div>
+                    <h3>등록된 게시글이 없습니다</h3>
+                    <p>가장 먼저 우리 동네 육아 이웃들에게 이야기를 건네보세요!</p>
+                    <button id="btn-empty-write" class="btn btn-primary btn-sm">
+                        <i data-lucide="edit-3" class="icon-sm"></i> 첫 글 쓰기
+                    </button>
+                </div>
+
+                <!-- 커뮤니티 페이지네이션 -->
+                <div class="pagination-container" id="comm-pagination-container" style="display: none;">
+                    <!-- JS로 동적 생성 -->
+                </div>
+            </section>
+        </div><!-- /#tab-content-community -->
     </main>
 
     <!-- 인앱 상세 모달 (원본 텍스트/포스터 뷰어) -->
@@ -351,13 +460,15 @@
 
 
             <div class="modal-footer-section">
-
                 <div class="modal-footer-info">
                     <span>* 신청은 원본 기관 사이트에서 직접 진행됩니다.</span>
                 </div>
                 <div class="modal-footer-buttons">
                     <button class="btn btn-outline" id="btn-copy-link">
                         <i data-lucide="copy" class="icon-sm"></i> 링크 복사
+                    </button>
+                    <button class="btn btn-secondary" id="btn-find-companion">
+                        <i data-lucide="users" class="icon-sm"></i> 🤝 동기 구하기
                     </button>
                     <a href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-apply"
                         id="btn-modal-apply">
@@ -375,7 +486,7 @@
                 <div class="dialog-icon-wrap">
                     <i data-lucide="lock" class="dialog-icon"></i>
                 </div>
-                <h3 class="dialog-title">댓글 삭제</h3>
+                <h3 class="dialog-title">삭제 확인</h3>
                 <p class="dialog-desc">작성 시 설정한 4자리 비밀번호를 입력해주세요.</p>
             </div>
             <form id="delete-confirm-form" class="dialog-form">
@@ -386,6 +497,217 @@
                     <button type="submit" class="btn btn-danger" id="btn-confirm-delete">삭제하기</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         커뮤니티 글 작성 모달
+         ========================================== -->
+    <div class="modal-backdrop" id="post-write-modal" style="display: none; z-index: 1050;">
+        <div class="modal-window modal-form-window">
+            <button class="modal-close" id="btn-close-post-write" aria-label="닫기">
+                <i data-lucide="x" class="icon-sm"></i>
+            </button>
+            <div class="modal-header-section">
+                <h2 class="modal-title" id="post-write-modal-title">새 글 쓰기 / 동기 모집</h2>
+                <p class="modal-sub-desc">우리 동네 영유아 부모님들과 소통하고 함께할 동기를 구해보세요 :)</p>
+            </div>
+            <div class="modal-scrollable-body">
+                <form id="post-write-form" class="comm-form">
+                    <!-- 카테고리 선택 -->
+                    <div class="form-group">
+                        <label class="form-label">카테고리 <span class="required">*</span></label>
+                        <div class="form-radio-group">
+                            <label class="radio-card">
+                                <input type="radio" name="post-category" value="같이 가요" checked />
+                                <span class="radio-label">🤝 같이 가요 (동행 모집)</span>
+                            </label>
+                            <label class="radio-card">
+                                <input type="radio" name="post-category" value="육아 수다" />
+                                <span class="radio-label">💬 육아 수다 & 꿀팁</span>
+                            </label>
+                            <label class="radio-card">
+                                <input type="radio" name="post-category" value="나눔/드림" />
+                                <span class="radio-label">🎁 나눔 & 드림</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 지역 & 월령 태그 -->
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label for="post-district" class="form-label">지역 <span class="required">*</span></label>
+                            <select id="post-district" class="form-select" required>
+                                <option value="전체">전체 지역</option>
+                                <option value="광진구">광진구</option>
+                                <option value="성동구">성동구</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="post-age-group" class="form-label">아기 월령</label>
+                            <select id="post-age-group" class="form-select">
+                                <option value="전체">전체 (0~36개월)</option>
+                                <option value="0~12개월">0~12개월 (영아)</option>
+                                <option value="13~24개월">13~24개월 (걸음마)</option>
+                                <option value="25~36개월">25~36개월 (유아)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 연계 프로그램 (선택) -->
+                    <div class="form-group" id="form-group-program" style="display: none;">
+                        <label class="form-label">연계 프로그램</label>
+                        <div class="linked-program-badge">
+                            <i data-lucide="link" class="icon-xs"></i>
+                            <span id="post-linked-program-title">프로그램명</span>
+                            <button type="button" class="btn-unlink-program" id="btn-unlink-program" title="연계 해제">
+                                <i data-lucide="x" class="icon-xs"></i>
+                            </button>
+                        </div>
+                        <input type="hidden" id="post-program-id" value="" />
+                        <input type="hidden" id="post-program-title" value="" />
+                    </div>
+
+                    <!-- 제목 -->
+                    <div class="form-group">
+                        <label for="post-title" class="form-label">제목 <span class="required">*</span></label>
+                        <input type="text" id="post-title" class="form-input"
+                            placeholder="예: 이번 주 목요일 중곡동 공동육아방 같이 가실 분!" maxlength="100" required />
+                    </div>
+
+                    <!-- 본문 -->
+                    <div class="form-group">
+                        <label for="post-content" class="form-label">내용 <span class="required">*</span></label>
+                        <textarea id="post-content" class="form-textarea" rows="5"
+                            placeholder="아기 월령, 희망하는 시간대, 수다 주제 등을 자유롭게 적어주세요 :)" required></textarea>
+                    </div>
+
+                    <!-- 오픈채팅 / 연락처 (선택) -->
+                    <div class="form-group">
+                        <label for="post-contact" class="form-label">오픈카톡 링크 또는 연락 방법 <span
+                                class="optional">(선택)</span></label>
+                        <input type="text" id="post-contact" class="form-input"
+                            placeholder="예: https://open.kakao.com/o/..." />
+                        <span class="form-help">동행 모집 시 카카오톡 오픈채팅 링크를 적어두면 이웃과 더 빠르게 대화할 수 있어요.</span>
+                    </div>
+
+                    <!-- 닉네임 & 비밀번호 -->
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label for="post-nickname" class="form-label">닉네임 <span class="required">*</span></label>
+                            <input type="text" id="post-nickname" class="form-input" placeholder="예: 중곡동뉴진맘"
+                                maxlength="20" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="post-password" class="form-label">삭제용 비밀번호 (4자리) <span
+                                    class="required">*</span></label>
+                            <input type="password" id="post-password" class="form-input" placeholder="숫자 4자리"
+                                maxlength="10" required />
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="btn-cancel-post-write">취소</button>
+                        <button type="submit" class="btn btn-primary btn-submit-post">
+                            <i data-lucide="send" class="icon-xs"></i> 등록하기
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         커뮤니티 글 상세 & 댓글 모달
+         ========================================== -->
+    <div class="modal-backdrop" id="post-detail-modal" style="display: none; z-index: 1060;">
+        <div class="modal-window modal-comm-detail-window">
+            <button class="modal-close" id="btn-close-post-detail" aria-label="닫기">
+                <i data-lucide="x" class="icon-sm"></i>
+            </button>
+            <div class="modal-header-section">
+                <div class="comm-detail-badges" id="comm-detail-badges">
+                    <!-- 뱃지들 -->
+                </div>
+                <h2 class="comm-detail-title" id="comm-detail-title">게시글 제목</h2>
+                <div class="comm-detail-meta" id="comm-detail-meta">
+                    <!-- 작성자, 작성일 등 -->
+                </div>
+            </div>
+
+            <div class="modal-scrollable-body">
+                <!-- 연계 프로그램 카드 (있을 경우) -->
+                <div class="linked-program-card" id="comm-linked-program-card" style="display: none;">
+                    <div class="linked-prog-info">
+                        <span class="linked-prog-tag">📌 연계 프로그램</span>
+                        <h4 class="linked-prog-title" id="comm-linked-prog-title">프로그램명</h4>
+                    </div>
+                    <button class="btn btn-outline btn-xs" id="btn-view-linked-prog">
+                        프로그램 보기 <i data-lucide="arrow-right" class="icon-xs"></i>
+                    </button>
+                </div>
+
+                <!-- 본문 내용 -->
+                <div class="comm-detail-content" id="comm-detail-content">
+                    <!-- 본문 -->
+                </div>
+
+                <!-- 오픈채팅 링크 (있을 경우) -->
+                <div class="comm-contact-box" id="comm-contact-box" style="display: none;">
+                    <div class="comm-contact-info">
+                        <i data-lucide="message-circle" class="icon-contact"></i>
+                        <div>
+                            <strong>작성자와 바로 대화하기</strong>
+                            <span class="contact-sub">카카오톡 오픈채팅방으로 이동합니다</span>
+                        </div>
+                    </div>
+                    <a href="#" target="_blank" rel="noopener noreferrer" class="btn btn-kakao" id="btn-comm-open-chat">
+                        오픈채팅 참여하기 <i data-lucide="external-link" class="icon-xs"></i>
+                    </a>
+                </div>
+
+                <!-- 글 작성자용 관리 액션 (상태 변경 / 삭제) -->
+                <div class="comm-owner-actions">
+                    <button type="button" class="btn-comm-action" id="btn-toggle-post-status">
+                        <i data-lucide="check-circle-2" class="icon-xs"></i> <span id="post-status-btn-text">모집완료로
+                            변경</span>
+                    </button>
+                    <button type="button" class="btn-comm-action btn-comm-delete" id="btn-delete-post">
+                        <i data-lucide="trash-2" class="icon-xs"></i> 글 삭제
+                    </button>
+                </div>
+
+                <!-- 댓글 섹션 -->
+                <div class="comm-comments-section">
+                    <div class="comm-comments-header">
+                        <h3 class="comm-comments-title">
+                            <i data-lucide="message-square" class="icon-sm"></i> 댓글 <span id="comm-comments-count"
+                                class="badge-review-count">0</span>
+                        </h3>
+                    </div>
+
+                    <!-- 댓글 작성 폼 -->
+                    <form id="comm-comment-form" class="review-write-box">
+                        <div class="review-inputs-row">
+                            <input type="text" id="comm-comment-nickname" placeholder="닉네임" maxlength="20" required />
+                            <input type="password" id="comm-comment-password" placeholder="비밀번호 4자리" maxlength="10"
+                                required />
+                        </div>
+                        <div class="review-content-row">
+                            <textarea id="comm-comment-content" placeholder="따뜻한 댓글을 남겨보세요 :)" rows="2"
+                                required></textarea>
+                            <button type="submit" class="btn btn-primary btn-sm btn-submit-review">
+                                <i data-lucide="send" class="icon-xs"></i> 등록
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- 댓글 목록 컨테이너 -->
+                    <div id="comm-comments-list" class="reviews-list">
+                        <!-- 댓글 리스트 -->
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -406,7 +728,8 @@
                 <button type="button" class="btn-lightbox" id="btn-zoom-reset" title="원래 크기 (100%)">
                     <i data-lucide="maximize-2" class="icon-sm"></i> <span class="btn-text">초기화</span>
                 </button>
-                <a href="#" target="_blank" rel="noopener noreferrer" class="btn-lightbox" id="btn-lightbox-external" title="새 탭에서 원본 열기">
+                <a href="#" target="_blank" rel="noopener noreferrer" class="btn-lightbox" id="btn-lightbox-external"
+                    title="새 탭에서 원본 열기">
                     <i data-lucide="external-link" class="icon-sm"></i> <span class="btn-text">새 탭 원본</span>
                 </a>
                 <button type="button" class="btn-lightbox btn-lightbox-close" id="btn-lightbox-close" title="닫기 (ESC)">

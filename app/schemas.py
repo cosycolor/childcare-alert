@@ -56,3 +56,61 @@ class ReviewResponse(BaseModel):
 class ReviewDelete(BaseModel):
     password: str
 
+
+# ==========================================
+# 커뮤니티 (Post / Comment) Schemas
+# ==========================================
+class PostCreate(BaseModel):
+    category: str = "같이 가요"
+    district: str = "전체"
+    target_age_group: str = "전체"
+    program_id: Optional[int] = None
+    program_title: Optional[str] = None
+    title: str
+    content: str
+    nickname: str
+    password: str
+    contact: Optional[str] = None
+
+class PostCommentResponse(BaseModel):
+    id: int
+    post_id: int
+    nickname: str
+    content: str
+    created_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class PostResponse(BaseModel):
+    id: int
+    category: str
+    district: str
+    target_age_group: str
+    program_id: Optional[int] = None
+    program_title: Optional[str] = None
+    title: str
+    content: str
+    nickname: str
+    contact: Optional[str] = None
+    status: str
+    created_at: Optional[datetime] = None
+    comments_count: int = 0
+    comments: list[PostCommentResponse] = []
+
+    class Config:
+        from_attributes = True
+
+class PostCommentCreate(BaseModel):
+    nickname: str
+    password: str
+    content: str
+
+class PostDelete(BaseModel):
+    password: str
+
+class PostStatusUpdate(BaseModel):
+    password: str
+    status: str
+
+

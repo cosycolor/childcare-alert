@@ -22,11 +22,30 @@ document.addEventListener('DOMContentLoaded', () => {
         currentPage: 1,
         pageSize: 12,
         currentMonth: new Date(2026, 8, 1), // 2026년 9월 기본
-        selectedProgram: null
+        selectedProgram: null,
+
+        // 커뮤니티 상태
+        activeMainTab: 'programs', // 'programs' | 'community'
+        communityPosts: [],
+        filteredCommunityPosts: [],
+        commFilters: {
+            category: '전체',
+            district: '전체',
+            status: '전체',
+            q: ''
+        },
+        commCurrentPage: 1,
+        commPageSize: 8,
+        selectedPost: null
     };
 
     // DOM 요소
     const elements = {
+        tabBtnPrograms: document.getElementById('tab-btn-programs'),
+        tabBtnCommunity: document.getElementById('tab-btn-community'),
+        tabContentPrograms: document.getElementById('tab-content-programs'),
+        tabContentCommunity: document.getElementById('tab-content-community'),
+
         programsGrid: document.getElementById('programs-grid'),
         paginationContainer: document.getElementById('pagination-container'),
         emptyState: document.getElementById('empty-state'),
@@ -58,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         statGwangjin: document.getElementById('stat-gwangjin'),
         statSeongdong: document.getElementById('stat-seongdong'),
 
-        // 모달
+        // 프로그램 모달
         modal: document.getElementById('program-modal'),
         modalCloseBtn: document.getElementById('modal-close-btn'),
         modalBadges: document.getElementById('modal-badges'),
@@ -67,6 +86,49 @@ document.addEventListener('DOMContentLoaded', () => {
         modalBody: document.getElementById('modal-body'),
         btnModalApply: document.getElementById('btn-modal-apply'),
         btnCopyLink: document.getElementById('btn-copy-link'),
+        btnFindCompanion: document.getElementById('btn-find-companion'),
+
+        // 커뮤니티 요소
+        commPostsGrid: document.getElementById('community-posts-grid'),
+        commPaginationContainer: document.getElementById('comm-pagination-container'),
+        commEmptyState: document.getElementById('comm-empty-state'),
+        commTotalCount: document.getElementById('comm-total-count'),
+        commSearchInput: document.getElementById('comm-search-input'),
+        commSearchClear: document.getElementById('comm-search-clear'),
+        btnOpenPostWrite: document.getElementById('btn-open-post-write'),
+        btnEmptyWrite: document.getElementById('btn-empty-write'),
+
+        // 글 작성 모달
+        postWriteModal: document.getElementById('post-write-modal'),
+        btnClosePostWrite: document.getElementById('btn-close-post-write'),
+        btnCancelPostWrite: document.getElementById('btn-cancel-post-write'),
+        postWriteForm: document.getElementById('post-write-form'),
+        postWriteModalTitle: document.getElementById('post-write-modal-title'),
+        formGroupProgram: document.getElementById('form-group-program'),
+        postLinkedProgramTitle: document.getElementById('post-linked-program-title'),
+        btnUnlinkProgram: document.getElementById('btn-unlink-program'),
+        postProgramId: document.getElementById('post-program-id'),
+        postProgramTitle: document.getElementById('post-program-title'),
+
+        // 글 상세 모달
+        postDetailModal: document.getElementById('post-detail-modal'),
+        btnClosePostDetail: document.getElementById('btn-close-post-detail'),
+        commDetailBadges: document.getElementById('comm-detail-badges'),
+        commDetailTitle: document.getElementById('comm-detail-title'),
+        commDetailMeta: document.getElementById('comm-detail-meta'),
+        commLinkedProgramCard: document.getElementById('comm-linked-program-card'),
+        commLinkedProgTitle: document.getElementById('comm-linked-prog-title'),
+        btnViewLinkedProg: document.getElementById('btn-view-linked-prog'),
+        commDetailContent: document.getElementById('comm-detail-content'),
+        commContactBox: document.getElementById('comm-contact-box'),
+        btnCommOpenChat: document.getElementById('btn-comm-open-chat'),
+        btnTogglePostStatus: document.getElementById('btn-toggle-post-status'),
+        postStatusBtnText: document.getElementById('post-status-btn-text'),
+        btnDeletePost: document.getElementById('btn-delete-post'),
+        commCommentsCount: document.getElementById('comm-comments-count'),
+        commCommentForm: document.getElementById('comm-comment-form'),
+        commCommentsList: document.getElementById('comm-comments-list'),
+
         toast: document.getElementById('toast-message')
     };
 
@@ -180,10 +242,156 @@ document.addEventListener('DOMContentLoaded', () => {
         elements.modal.addEventListener('click', (e) => {
             if (e.target === elements.modal) closeModal();
         });
+        // 상단 메인 탭 전환
+        if (elements.tabBtnPrograms) {
+            elements.tabBtnPrograms.addEventListener('click', () => switchMainTab('programs'));
+        }
+        if (elements.tabBtnCommunity) {
+            elements.tabBtnCommunity.addEventListener('click', () => switchMainTab('community'));
+        }
+
+        // 프로그램 모달 내 [🤝 동기 구하기] 버튼
+        if (elements.btnFindCompanion) {
+            elements.btnFindCompanion.addEventListener('click', () => {
+                if (state.selectedProgram) {
+                    const prog = state.selectedProgram;
+                    closeModal();
+                    switchMainTab('community');
+                    openPostWriteModal({
+                        id: prog.id,
+                        title: prog.title,
+                        district: prog.district,
+                        ageGroup: prog.target_age_group
+                    });
+                }
+            });
+        }
+
+        // 커뮤니티 글쓰기 버튼들
+        if (elements.btnOpenPostWrite) {
+            elements.btnOpenPostWrite.addEventListener('click', () => openPostWriteModal());
+        }
+        if (elements.btnEmptyWrite) {
+            elements.btnEmptyWrite.addEventListener('click', () => openPostWriteModal());
+        }
+        if (elements.btnClosePostWrite) {
+            elements.btnClosePostWrite.addEventListener('click', closePostWriteModal);
+        }
+        if (elements.btnCancelPostWrite) {
+            elements.btnCancelPostWrite.addEventListener('click', closePostWriteModal);
+        }
+        if (elements.btnUnlinkProgram) {
+            elements.btnUnlinkProgram.addEventListener('click', unlinkProgramFromForm);
+        }
+
+        // 커뮤니티 글 작성 폼 제출
+        if (elements.postWriteForm) {
+            elements.postWriteForm.addEventListener('submit', handlePostWriteSubmit);
+        }
+
+        // 커뮤니티 글 상세 모달 닫기
+        if (elements.btnClosePostDetail) {
+            elements.btnClosePostDetail.addEventListener('click', closePostDetailModal);
+        }
+        if (elements.postDetailModal) {
+            elements.postDetailModal.addEventListener('click', (e) => {
+                if (e.target === elements.postDetailModal) closePostDetailModal();
+            });
+        }
+
+        // 커뮤니티 글 상태 변경 & 삭제
+        if (elements.btnTogglePostStatus) {
+            elements.btnTogglePostStatus.addEventListener('click', handleTogglePostStatus);
+        }
+        if (elements.btnDeletePost) {
+            elements.btnDeletePost.addEventListener('click', handleDeleteCurrentPost);
+        }
+
+        // 연계 프로그램 보기 버튼
+        if (elements.btnViewLinkedProg) {
+            elements.btnViewLinkedProg.addEventListener('click', () => {
+                if (state.selectedPost && state.selectedPost.program_id) {
+                    closePostDetailModal();
+                    switchMainTab('programs');
+                    openDetailModal(state.selectedPost.program_id);
+                }
+            });
+        }
+
+        // 커뮤니티 댓글 작성
+        if (elements.commCommentForm) {
+            elements.commCommentForm.addEventListener('submit', handlePostCommentSubmit);
+        }
+
+        // 커뮤니티 카테고리 필터
+        const catFilterWrap = document.getElementById('community-category-filter');
+        if (catFilterWrap) {
+            catFilterWrap.addEventListener('click', (e) => {
+                const btn = e.target.closest('.comm-chip');
+                if (btn) {
+                    catFilterWrap.querySelectorAll('.comm-chip').forEach(c => c.classList.remove('active'));
+                    btn.classList.add('active');
+                    state.commFilters.category = btn.getAttribute('data-category');
+                    applyCommunityFilters();
+                }
+            });
+        }
+
+        // 커뮤니티 서브 필터 (지역, 상태)
+        const distFilterWrap = document.getElementById('community-district-filter');
+        if (distFilterWrap) {
+            distFilterWrap.addEventListener('click', (e) => {
+                const btn = e.target.closest('.sub-chip');
+                if (btn) {
+                    distFilterWrap.querySelectorAll('.sub-chip').forEach(c => c.classList.remove('active'));
+                    btn.classList.add('active');
+                    state.commFilters.district = btn.getAttribute('data-district');
+                    applyCommunityFilters();
+                }
+            });
+        }
+
+        const statusFilterWrap = document.getElementById('community-status-filter');
+        if (statusFilterWrap) {
+            statusFilterWrap.addEventListener('click', (e) => {
+                const btn = e.target.closest('.sub-chip');
+                if (btn) {
+                    statusFilterWrap.querySelectorAll('.sub-chip').forEach(c => c.classList.remove('active'));
+                    btn.classList.add('active');
+                    state.commFilters.status = btn.getAttribute('data-status');
+                    applyCommunityFilters();
+                }
+            });
+        }
+
+        // 커뮤니티 검색
+        if (elements.commSearchInput) {
+            elements.commSearchInput.addEventListener('input', (e) => {
+                state.commFilters.q = e.target.value.trim();
+                elements.commSearchClear.style.display = state.commFilters.q ? 'block' : 'none';
+                applyCommunityFilters();
+            });
+        }
+        if (elements.commSearchClear) {
+            elements.commSearchClear.addEventListener('click', () => {
+                elements.commSearchInput.value = '';
+                state.commFilters.q = '';
+                elements.commSearchClear.style.display = 'none';
+                applyCommunityFilters();
+            });
+        }
+
+        // ESC 키 닫기 이벤트 핸들링
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 if (lightboxModal && lightboxModal.style.display !== 'none') {
                     closeLightbox();
+                } else if (elements.postDetailModal && elements.postDetailModal.style.display !== 'none') {
+                    closePostDetailModal();
+                } else if (elements.postWriteModal && elements.postWriteModal.style.display !== 'none') {
+                    closePostWriteModal();
+                } else if (deleteConfirmModal && deleteConfirmModal.style.display !== 'none') {
+                    deleteConfirmModal.style.display = 'none';
                 } else if (elements.modal.style.display !== 'none') {
                     closeModal();
                 }
@@ -948,33 +1156,549 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 삭제 모달 상태 관리
-    let pendingDeleteReviewId = null;
+    // ==========================================
+    // 메인 상단 탭 전환 (프로그램 ↔ 커뮤니티)
+    // ==========================================
+    function switchMainTab(tab) {
+        state.activeMainTab = tab;
+
+        if (tab === 'programs') {
+            elements.tabBtnPrograms?.classList.add('active');
+            elements.tabBtnCommunity?.classList.remove('active');
+            if (elements.tabContentPrograms) elements.tabContentPrograms.style.display = 'block';
+            if (elements.tabContentCommunity) elements.tabContentCommunity.style.display = 'none';
+        } else {
+            elements.tabBtnCommunity?.classList.add('active');
+            elements.tabBtnPrograms?.classList.remove('active');
+            if (elements.tabContentPrograms) elements.tabContentPrograms.style.display = 'none';
+            if (elements.tabContentCommunity) elements.tabContentCommunity.style.display = 'block';
+
+            if (state.communityPosts.length === 0) {
+                fetchCommunityPosts();
+            } else {
+                renderCommunityPosts();
+            }
+        }
+
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+    }
+
+    // ==========================================
+    // 커뮤니티 (동기 모집 & 육아 수다) 로직
+    // ==========================================
+    async function fetchCommunityPosts() {
+        try {
+            const res = await fetch('/api/posts');
+            if (res.ok) {
+                state.communityPosts = await res.json();
+                applyCommunityFilters();
+            }
+        } catch (e) {
+            console.error('커뮤니티 글 로드 실패', e);
+            showToast('커뮤니티 글을 불러오는 중 오류가 발생했습니다.');
+        }
+    }
+
+    function applyCommunityFilters(resetPage = true) {
+        if (resetPage) {
+            state.commCurrentPage = 1;
+        }
+
+        let list = state.communityPosts.filter(p => {
+            // 카테고리
+            if (state.commFilters.category !== '전체') {
+                if (p.category !== state.commFilters.category) return false;
+            }
+            // 지역
+            if (state.commFilters.district !== '전체') {
+                if (p.district !== state.commFilters.district && p.district !== '전체') return false;
+            }
+            // 상태 (모집중)
+            if (state.commFilters.status !== '전체') {
+                if (p.status !== state.commFilters.status) return false;
+            }
+            // 검색어
+            if (state.commFilters.q) {
+                const q = state.commFilters.q.toLowerCase();
+                const content = `${p.title} ${p.content} ${p.nickname} ${p.program_title || ''}`.toLowerCase();
+                if (!content.includes(q)) return false;
+            }
+            return true;
+        });
+
+        state.filteredCommunityPosts = list;
+        renderCommunityPosts();
+    }
+
+    function renderCommunityPosts() {
+        if (!elements.commPostsGrid) return;
+
+        const total = state.filteredCommunityPosts.length;
+        if (elements.commTotalCount) elements.commTotalCount.textContent = total;
+
+        if (total === 0) {
+            elements.commPostsGrid.innerHTML = '';
+            if (elements.commEmptyState) elements.commEmptyState.style.display = 'block';
+            if (elements.commPaginationContainer) {
+                elements.commPaginationContainer.style.display = 'none';
+                elements.commPaginationContainer.innerHTML = '';
+            }
+            return;
+        }
+
+        if (elements.commEmptyState) elements.commEmptyState.style.display = 'none';
+
+        const totalPages = Math.ceil(total / state.commPageSize);
+        if (state.commCurrentPage > totalPages) {
+            state.commCurrentPage = Math.max(1, totalPages);
+        }
+
+        const startIndex = (state.commCurrentPage - 1) * state.commPageSize;
+        const endIndex = Math.min(startIndex + state.commPageSize, total);
+        const currentItems = state.filteredCommunityPosts.slice(startIndex, endIndex);
+
+        elements.commPostsGrid.innerHTML = currentItems.map(p => {
+            const dateStr = p.created_at ? p.created_at.split('T')[0] : '';
+            const catBadgeClass = p.category === '같이 가요' ? 'cat-companion' : (p.category === '육아 수다' ? 'cat-chat' : 'cat-share');
+            const statusBadge = p.category === '같이 가요' ? `<span class="badge-comm-status ${p.status === '모집중' ? 'status-recruiting' : 'status-done'}">${p.status}</span>` : '';
+
+            return `
+                <div class="community-card" data-post-id="${p.id}">
+                    <div class="comm-card-header">
+                        <div class="comm-card-badges">
+                            <span class="badge-comm-cat ${catBadgeClass}">${p.category}</span>
+                            ${statusBadge}
+                            <span class="comm-tag-dist">${p.district}</span>
+                            ${p.target_age_group && p.target_age_group !== '전체' ? `<span class="comm-tag-age">${p.target_age_group}</span>` : ''}
+                        </div>
+                        <span class="comm-card-date">${dateStr}</span>
+                    </div>
+
+                    ${p.program_title ? `
+                        <div class="comm-card-linked-prog">
+                            <i data-lucide="link" class="icon-xxs"></i>
+                            <span>${escapeHtml(p.program_title)}</span>
+                        </div>
+                    ` : ''}
+
+                    <h3 class="comm-card-title">${escapeHtml(p.title)}</h3>
+                    <p class="comm-card-desc">${escapeHtml(p.content)}</p>
+
+                    <div class="comm-card-footer">
+                        <div class="comm-card-author">
+                            <i data-lucide="user" class="icon-xs"></i> <span>${escapeHtml(p.nickname)}</span>
+                        </div>
+                        <div class="comm-card-meta-right">
+                            ${p.contact ? `<span class="badge-kakao-ready" title="카카오톡 오픈채팅 가능"><i data-lucide="message-circle" class="icon-xxs"></i> 오픈채팅</span>` : ''}
+                            <span class="comm-comment-count">
+                                <i data-lucide="message-square" class="icon-xs"></i> ${p.comments_count || 0}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        // 카드 클릭 시 상세 모달 열기
+        elements.commPostsGrid.querySelectorAll('.community-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const postId = parseInt(card.getAttribute('data-post-id'), 10);
+                openPostDetailModal(postId);
+            });
+        });
+
+        // 커뮤니티 페이지네이션 렌더링
+        renderCommunityPagination(totalPages, total, startIndex + 1, endIndex);
+
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+    }
+
+    function renderCommunityPagination(totalPages, total, startNum, endNum) {
+        if (!elements.commPaginationContainer) return;
+
+        if (totalPages <= 1) {
+            elements.commPaginationContainer.style.display = 'none';
+            elements.commPaginationContainer.innerHTML = '';
+            return;
+        }
+
+        elements.commPaginationContainer.style.display = 'flex';
+        const current = state.commCurrentPage;
+
+        const pages = [];
+        for (let i = 1; i <= totalPages; i++) pages.push(i);
+
+        const pagesHtml = pages.map(p => {
+            return `<button class="page-btn ${p === current ? 'active' : ''}" data-page="${p}">${p}</button>`;
+        }).join('');
+
+        elements.commPaginationContainer.innerHTML = `
+            <div class="pagination-info">
+                <span>전체 ${total}개 중 <strong>${startNum}-${endNum}</strong>개 표시 (${current} / ${totalPages} 페이지)</span>
+            </div>
+            <nav class="pagination-nav" aria-label="커뮤니티 페이지 네비게이션">
+                <button class="page-nav-btn" id="btn-comm-page-prev" ${current === 1 ? 'disabled' : ''}>
+                    <i data-lucide="chevron-left" class="icon-xs"></i> <span>이전</span>
+                </button>
+                <div class="page-numbers">
+                    ${pagesHtml}
+                </div>
+                <button class="page-nav-btn" id="btn-comm-page-next" ${current === totalPages ? 'disabled' : ''}>
+                    <span>다음</span> <i data-lucide="chevron-right" class="icon-xs"></i>
+                </button>
+            </nav>
+        `;
+
+        const prevBtn = elements.commPaginationContainer.querySelector('#btn-comm-page-prev');
+        if (prevBtn && current > 1) {
+            prevBtn.addEventListener('click', () => goToCommPage(current - 1));
+        }
+
+        const nextBtn = elements.commPaginationContainer.querySelector('#btn-comm-page-next');
+        if (nextBtn && current < totalPages) {
+            nextBtn.addEventListener('click', () => goToCommPage(current + 1));
+        }
+
+        elements.commPaginationContainer.querySelectorAll('.page-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const pageNum = parseInt(btn.getAttribute('data-page'), 10);
+                if (pageNum && pageNum !== current) {
+                    goToCommPage(pageNum);
+                }
+            });
+        });
+    }
+
+    function goToCommPage(page) {
+        state.commCurrentPage = page;
+        renderCommunityPosts();
+        const target = elements.tabContentCommunity;
+        if (target) {
+            const topOffset = target.getBoundingClientRect().top + window.scrollY - 80;
+            window.scrollTo({ top: Math.max(0, topOffset), behavior: 'smooth' });
+        }
+    }
+
+    // ==========================================
+    // 글 작성 모달 제어
+    // ==========================================
+    function openPostWriteModal(linkedProgram = null) {
+        if (!elements.postWriteModal) return;
+
+        // 폼 초기화
+        elements.postWriteForm.reset();
+
+        if (linkedProgram) {
+            if (elements.formGroupProgram) elements.formGroupProgram.style.display = 'block';
+            if (elements.postLinkedProgramTitle) elements.postLinkedProgramTitle.textContent = linkedProgram.title;
+            if (elements.postProgramId) elements.postProgramId.value = linkedProgram.id;
+            if (elements.postProgramTitle) elements.postProgramTitle.value = linkedProgram.title;
+
+            // 지역 및 카테고리 자동 설정
+            const distSelect = document.getElementById('post-district');
+            if (distSelect && linkedProgram.district) {
+                if (linkedProgram.district.includes('광진')) distSelect.value = '광진구';
+                else if (linkedProgram.district.includes('성동')) distSelect.value = '성동구';
+            }
+
+            const titleInput = document.getElementById('post-title');
+            if (titleInput) {
+                titleInput.value = `[${linkedProgram.title}] 함께 신청하고 같이 가실 분 구해요!`;
+            }
+        } else {
+            unlinkProgramFromForm();
+        }
+
+        elements.postWriteModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+    }
+
+    function closePostWriteModal() {
+        if (!elements.postWriteModal) return;
+        elements.postWriteModal.style.display = 'none';
+        if (!elements.postDetailModal || elements.postDetailModal.style.display === 'none') {
+            document.body.style.overflow = '';
+        }
+    }
+
+    function unlinkProgramFromForm() {
+        if (elements.formGroupProgram) elements.formGroupProgram.style.display = 'none';
+        if (elements.postProgramId) elements.postProgramId.value = '';
+        if (elements.postProgramTitle) elements.postProgramTitle.value = '';
+    }
+
+    async function handlePostWriteSubmit(e) {
+        e.preventDefault();
+
+        const catRadio = elements.postWriteForm.querySelector('input[name="post-category"]:checked');
+        const payload = {
+            category: catRadio ? catRadio.value : '같이 가요',
+            district: document.getElementById('post-district')?.value || '전체',
+            target_age_group: document.getElementById('post-age-group')?.value || '전체',
+            program_id: elements.postProgramId?.value ? parseInt(elements.postProgramId.value, 10) : null,
+            program_title: elements.postProgramTitle?.value || null,
+            title: document.getElementById('post-title')?.value.trim() || '',
+            content: document.getElementById('post-content')?.value.trim() || '',
+            contact: document.getElementById('post-contact')?.value.trim() || null,
+            nickname: document.getElementById('post-nickname')?.value.trim() || '',
+            password: document.getElementById('post-password')?.value.trim() || ''
+        };
+
+        if (!payload.title || !payload.content || !payload.nickname || !payload.password) {
+            showToast('필수 항목을 모두 입력해주세요.');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/posts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                const newPost = await res.json();
+                showToast('게시글이 성공적으로 등록되었습니다! 🎉');
+                closePostWriteModal();
+                await fetchCommunityPosts();
+                openPostDetailModal(newPost.id);
+            } else {
+                const err = await res.json();
+                showToast(err.detail || '글 등록에 실패했습니다.');
+            }
+        } catch (e) {
+            showToast('네트워크 오류가 발생했습니다.');
+        }
+    }
+
+    // ==========================================
+    // 글 상세 모달 제어
+    // ==========================================
+    async function openPostDetailModal(postId) {
+        if (!elements.postDetailModal) return;
+
+        try {
+            const res = await fetch(`/api/posts/${postId}`);
+            if (!res.ok) throw new Error('게시글을 불러오지 못했습니다.');
+            const post = await res.json();
+            state.selectedPost = post;
+
+            // 뱃지 및 메타
+            const catBadgeClass = post.category === '같이 가요' ? 'cat-companion' : (post.category === '육아 수다' ? 'cat-chat' : 'cat-share');
+            const statusBadge = post.category === '같이 가요' ? `<span class="badge-comm-status ${post.status === '모집중' ? 'status-recruiting' : 'status-done'}">${post.status}</span>` : '';
+
+            elements.commDetailBadges.innerHTML = `
+                <span class="badge-comm-cat ${catBadgeClass}">${post.category}</span>
+                ${statusBadge}
+                <span class="comm-tag-dist">${post.district}</span>
+                <span class="comm-tag-age">${post.target_age_group}</span>
+            `;
+
+            elements.commDetailTitle.textContent = post.title;
+            const dateStr = post.created_at ? post.created_at.split('T')[0] : '';
+            elements.commDetailMeta.innerHTML = `
+                <span><i data-lucide="user" class="icon-xs"></i> <strong>${escapeHtml(post.nickname)}</strong></span>
+                <span><i data-lucide="calendar" class="icon-xs"></i> ${dateStr}</span>
+            `;
+
+            // 연계 프로그램
+            if (post.program_id && post.program_title) {
+                elements.commLinkedProgTitle.textContent = post.program_title;
+                elements.commLinkedProgramCard.style.display = 'flex';
+            } else {
+                elements.commLinkedProgramCard.style.display = 'none';
+            }
+
+            // 본문
+            elements.commDetailContent.innerHTML = escapeHtml(post.content);
+
+            // 오픈카톡 링크
+            if (post.contact) {
+                elements.btnCommOpenChat.href = post.contact.startsWith('http') ? post.contact : `https://${post.contact}`;
+                elements.commContactBox.style.display = 'flex';
+            } else {
+                elements.commContactBox.style.display = 'none';
+            }
+
+            // 상태 변경 버튼 텍스트
+            if (elements.btnTogglePostStatus) {
+                if (post.category === '같이 가요') {
+                    elements.btnTogglePostStatus.style.display = 'inline-flex';
+                    elements.postStatusBtnText.textContent = post.status === '모집중' ? '모집완료로 변경' : '모집중으로 다시 변경';
+                } else {
+                    elements.btnTogglePostStatus.style.display = 'none';
+                }
+            }
+
+            // 댓글 렌더링
+            renderPostComments(post.comments || []);
+
+            elements.postDetailModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+        } catch (e) {
+            showToast('게시글을 불러오지 못했습니다.');
+        }
+    }
+
+    function closePostDetailModal() {
+        if (!elements.postDetailModal) return;
+        elements.postDetailModal.style.display = 'none';
+        document.body.style.overflow = '';
+        state.selectedPost = null;
+    }
+
+    function renderPostComments(comments) {
+        if (elements.commCommentsCount) elements.commCommentsCount.textContent = comments.length;
+
+        if (!elements.commCommentsList) return;
+
+        if (comments.length === 0) {
+            elements.commCommentsList.innerHTML = `
+                <div class="review-empty-box">
+                    아직 등록된 댓글이 없습니다. 첫 번째 이야기를 남겨보세요! ✨
+                </div>
+            `;
+            return;
+        }
+
+        elements.commCommentsList.innerHTML = comments.map(c => {
+            const dateStr = c.created_at ? c.created_at.split('T')[0] : '';
+            return `
+                <div class="review-item" data-comm-comment-id="${c.id}">
+                    <div class="review-item-header">
+                        <span class="review-author">
+                            <i data-lucide="user" class="icon-xs"></i> <strong>${escapeHtml(c.nickname)}</strong>
+                        </span>
+                        <div class="review-meta">
+                            <span class="review-date">${dateStr}</span>
+                            <button class="btn-review-delete" onclick="window.deleteCommunityComment(${c.id})">삭제</button>
+                        </div>
+                    </div>
+                    <div class="review-item-content">${escapeHtml(c.content)}</div>
+                </div>
+            `;
+        }).join('');
+
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+    }
+
+    async function handlePostCommentSubmit(e) {
+        e.preventDefault();
+        if (!state.selectedPost) return;
+
+        const nickname = document.getElementById('comm-comment-nickname')?.value.trim();
+        const password = document.getElementById('comm-comment-password')?.value.trim();
+        const content = document.getElementById('comm-comment-content')?.value.trim();
+
+        if (!nickname || !password || !content) {
+            showToast('모든 항목을 입력해주세요.');
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/posts/${state.selectedPost.id}/comments`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nickname, password, content })
+            });
+
+            if (res.ok) {
+                showToast('댓글이 등록되었습니다! 🎉');
+                document.getElementById('comm-comment-content').value = '';
+                document.getElementById('comm-comment-password').value = '';
+                openPostDetailModal(state.selectedPost.id);
+                fetchCommunityPosts(); // 목록의 댓글 수 갱신
+            } else {
+                const err = await res.json();
+                showToast(err.detail || '댓글 등록 실패');
+            }
+        } catch (e) {
+            showToast('네트워크 오류가 발생했습니다.');
+        }
+    }
+
+    async function handleTogglePostStatus() {
+        if (!state.selectedPost) return;
+        const newStatus = state.selectedPost.status === '모집중' ? '모집완료' : '모집중';
+        const password = prompt('글 작성 시 입력한 비밀번호 4자리를 입력해주세요:');
+        if (!password) return;
+
+        try {
+            const res = await fetch(`/api/posts/${state.selectedPost.id}/status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password, status: newStatus })
+            });
+
+            if (res.ok) {
+                showToast(`상태가 [${newStatus}]로 변경되었습니다.`);
+                openPostDetailModal(state.selectedPost.id);
+                fetchCommunityPosts();
+            } else {
+                const err = await res.json();
+                showToast(err.detail || '비밀번호가 일치하지 않습니다.');
+            }
+        } catch (e) {
+            showToast('오류가 발생했습니다.');
+        }
+    }
+
+    function handleDeleteCurrentPost() {
+        if (!state.selectedPost) return;
+        openUnifiedDeleteModal('post', state.selectedPost.id);
+    }
+
+    window.deleteCommunityComment = function(commentId) {
+        openUnifiedDeleteModal('comm_comment', commentId);
+    };
+
+    // ==========================================
+    // 통합 비밀번호 확인 및 삭제 모달 시스템
+    // ==========================================
+    let pendingDeleteTarget = null; // { type: 'review'|'post'|'comm_comment', id: number }
     const deleteConfirmModal = document.getElementById('delete-confirm-modal');
     const deleteConfirmForm = document.getElementById('delete-confirm-form');
     const deleteConfirmPassword = document.getElementById('delete-confirm-password');
     const btnCancelDelete = document.getElementById('btn-cancel-delete');
 
-    window.deleteReviewItem = function(reviewId) {
-        pendingDeleteReviewId = reviewId;
+    function openUnifiedDeleteModal(type, id) {
+        pendingDeleteTarget = { type, id };
         if (deleteConfirmPassword) deleteConfirmPassword.value = '';
         if (deleteConfirmModal) {
             deleteConfirmModal.style.display = 'flex';
             setTimeout(() => deleteConfirmPassword?.focus(), 100);
         }
+    }
+
+    window.deleteReviewItem = function(reviewId) {
+        openUnifiedDeleteModal('review', reviewId);
     };
 
     if (btnCancelDelete) {
         btnCancelDelete.addEventListener('click', () => {
             if (deleteConfirmModal) deleteConfirmModal.style.display = 'none';
-            pendingDeleteReviewId = null;
+            pendingDeleteTarget = null;
         });
     }
 
     if (deleteConfirmForm) {
         deleteConfirmForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!pendingDeleteReviewId) return;
+            if (!pendingDeleteTarget) return;
 
             const password = deleteConfirmPassword ? deleteConfirmPassword.value.trim() : '';
             if (!password) {
@@ -982,19 +1706,37 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            const { type, id } = pendingDeleteTarget;
+            let endpoint = '';
+
+            if (type === 'review') {
+                endpoint = `/api/reviews/${id}/delete`;
+            } else if (type === 'post') {
+                endpoint = `/api/posts/${id}/delete`;
+            } else if (type === 'comm_comment') {
+                endpoint = `/api/comments/${id}/delete`;
+            }
+
             try {
-                const res = await fetch(`/api/reviews/${pendingDeleteReviewId}/delete`, {
+                const res = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ password })
                 });
 
                 if (res.ok) {
-                    showToast('댓글이 삭제되었습니다.');
+                    showToast('삭제되었습니다.');
                     if (deleteConfirmModal) deleteConfirmModal.style.display = 'none';
-                    pendingDeleteReviewId = null;
-                    if (state.selectedProgram) {
-                        fetchReviews(state.selectedProgram.id);
+                    pendingDeleteTarget = null;
+
+                    if (type === 'review') {
+                        if (state.selectedProgram) fetchReviews(state.selectedProgram.id);
+                    } else if (type === 'post') {
+                        closePostDetailModal();
+                        fetchCommunityPosts();
+                    } else if (type === 'comm_comment') {
+                        if (state.selectedPost) openPostDetailModal(state.selectedPost.id);
+                        fetchCommunityPosts();
                     }
                 } else {
                     const err = await res.json();
@@ -1005,7 +1747,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
 
     function escapeHtml(str) {
         if (!str) return '';

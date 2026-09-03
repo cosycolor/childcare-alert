@@ -30,6 +30,10 @@ async def lifespan(app: FastAPI):
             logger.info("Database is empty. Initializing with scraper & seed data...")
             await sync_all_data(db)
             logger.info(f"Initialized with {db.query(Program).count()} programs.")
+        
+        # 커뮤니티 초기 글 동기화
+        from app.scrapers.seed_data import seed_community_posts
+        seed_community_posts(db)
     finally:
         db.close()
     yield
@@ -181,7 +185,205 @@ def delete_program_review(review_id: int, delete_in: ReviewDelete, db: Session =
     db.commit()
     return {"status": "success", "message": "삭제되었습니다."}
 
+
+# ==========================================
+# 커뮤니티 (동행 모집 & 육아 수다) API
+# ==========================================
+from app.models import Post, PostComment
+from app.schemas import (
+    PostCreate, PostResponse, PostDelete, PostStatusUpdate,
+    PostCommentCreate, PostCommentResponse
+)
+
+@app.get("/api/posts", response_model=List[PostResponse])
+def get_posts(
+    category: Optional[str] = Query(None, description="카테고리 (같이 가요, 육아 수다, 나눔/드림)"),
+    district: Optional[str] = Query(None, description="지역 (광진구, 성동구 등)"),
+    age_group: Optional[str] = Query(None, description="월령 (0~12개월 등)"),
+    status: Optional[str] = Query(None, description="모집 상태 (모집중, 모집완료)"),
+    q: Optional[str] = Query(None, description="검색어"),
+    db: Session = Depends(get_db)
+):
+    query = db.query(Post)
+
+    if category and category != "전체":
+        query = query.filter(Post.category == category)
+    if district and district != "전체":
+        query = query.filter(or_(Post.district == district, Post.district == "전체"))
+    if age_group and age_group != "전체":
+        query = query.filter(or_(Post.target_age_group == age_group, Post.target_age_group == "전체"))
+    if status and status != "전체":
+        query = query.filter(Post.status == status)
+    if q:
+        search = f"%{q}%"
+        query = query.filter(
+            or_(
+                Post.title.like(search),
+                Post.content.like(search),
+                Post.program_title.like(search),
+                Post.nickname.like(search)
+            )
+        )
+
+    posts = query.order_by(Post.created_at.desc()).all()
+    
+    # 댓글 수 및 댓글 리스트 채우기
+    result = []
+    for p in posts:
+        comments = db.query(PostComment).filter(PostComment.post_id == p.id).order_by(PostComment.created_at.asc()).all()
+        post_dict = {
+            "id": p.id,
+            "category": p.category,
+            "district": p.district,
+            "target_age_group": p.target_age_group,
+            "program_id": p.program_id,
+            "program_title": p.program_title,
+            "title": p.title,
+            "content": p.content,
+            "nickname": p.nickname,
+            "contact": p.contact,
+            "status": p.status,
+            "created_at": p.created_at,
+            "comments_count": len(comments),
+            "comments": comments
+        }
+        result.append(post_dict)
+    
+    return result
+
+
+@app.post("/api/posts", response_model=PostResponse)
+def create_post(post_in: PostCreate, db: Session = Depends(get_db)):
+    if not post_in.title.strip() or not post_in.content.strip() or not post_in.nickname.strip():
+        raise HTTPException(status_code=400, detail="제목, 내용, 닉네임은 필수입니다.")
+    if not post_in.password.strip():
+        raise HTTPException(status_code=400, detail="삭제용 비밀번호를 입력해주세요.")
+
+    new_post = Post(
+        category=post_in.category or "같이 가요",
+        district=post_in.district or "전체",
+        target_age_group=post_in.target_age_group or "전체",
+        program_id=post_in.program_id,
+        program_title=post_in.program_title,
+        title=post_in.title.strip()[:255],
+        content=post_in.content.strip(),
+        nickname=post_in.nickname.strip()[:50],
+        password=post_in.password.strip(),
+        contact=post_in.contact.strip() if post_in.contact else None,
+        status="모집중" if post_in.category == "같이 가요" else "일반"
+    )
+    db.add(new_post)
+    db.commit()
+    db.refresh(new_post)
+    
+    return {
+        "id": new_post.id,
+        "category": new_post.category,
+        "district": new_post.district,
+        "target_age_group": new_post.target_age_group,
+        "program_id": new_post.program_id,
+        "program_title": new_post.program_title,
+        "title": new_post.title,
+        "content": new_post.content,
+        "nickname": new_post.nickname,
+        "contact": new_post.contact,
+        "status": new_post.status,
+        "created_at": new_post.created_at,
+        "comments_count": 0,
+        "comments": []
+    }
+
+
+@app.get("/api/posts/{post_id}", response_model=PostResponse)
+def get_post_detail(post_id: int, db: Session = Depends(get_db)):
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="게시글을 찾을 수 없습니다.")
+    
+    comments = db.query(PostComment).filter(PostComment.post_id == post.id).order_by(PostComment.created_at.asc()).all()
+    return {
+        "id": post.id,
+        "category": post.category,
+        "district": post.district,
+        "target_age_group": post.target_age_group,
+        "program_id": post.program_id,
+        "program_title": post.program_title,
+        "title": post.title,
+        "content": post.content,
+        "nickname": post.nickname,
+        "contact": post.contact,
+        "status": post.status,
+        "created_at": post.created_at,
+        "comments_count": len(comments),
+        "comments": comments
+    }
+
+
+@app.post("/api/posts/{post_id}/status")
+def update_post_status(post_id: int, status_in: PostStatusUpdate, db: Session = Depends(get_db)):
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="게시글을 찾을 수 없습니다.")
+    if post.password != status_in.password.strip():
+        raise HTTPException(status_code=403, detail="비밀번호가 일치하지 않습니다.")
+    
+    post.status = status_in.status
+    db.commit()
+    return {"status": "success", "new_status": post.status}
+
+
+@app.post("/api/posts/{post_id}/delete")
+def delete_post(post_id: int, delete_in: PostDelete, db: Session = Depends(get_db)):
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="게시글을 찾을 수 없습니다.")
+    if post.password != delete_in.password.strip():
+        raise HTTPException(status_code=403, detail="비밀번호가 일치하지 않습니다.")
+    
+    # 댓글 함께 삭제
+    db.query(PostComment).filter(PostComment.post_id == post_id).delete()
+    db.delete(post)
+    db.commit()
+    return {"status": "success", "message": "게시글이 삭제되었습니다."}
+
+
+@app.post("/api/posts/{post_id}/comments", response_model=PostCommentResponse)
+def create_post_comment(post_id: int, comment_in: PostCommentCreate, db: Session = Depends(get_db)):
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="게시글을 찾을 수 없습니다.")
+    if not comment_in.nickname.strip() or not comment_in.content.strip():
+        raise HTTPException(status_code=400, detail="닉네임과 내용을 입력해주세요.")
+    if not comment_in.password.strip():
+        raise HTTPException(status_code=400, detail="비밀번호를 입력해주세요.")
+    
+    comment = PostComment(
+        post_id=post_id,
+        nickname=comment_in.nickname.strip()[:50],
+        password=comment_in.password.strip(),
+        content=comment_in.content.strip()
+    )
+    db.add(comment)
+    db.commit()
+    db.refresh(comment)
+    return comment
+
+
+@app.post("/api/comments/{comment_id}/delete")
+def delete_post_comment(comment_id: int, delete_in: PostDelete, db: Session = Depends(get_db)):
+    comment = db.query(PostComment).filter(PostComment.id == comment_id).first()
+    if not comment:
+        raise HTTPException(status_code=404, detail="댓글을 찾을 수 없습니다.")
+    if comment.password != delete_in.password.strip():
+        raise HTTPException(status_code=403, detail="비밀번호가 일치하지 않습니다.")
+    
+    db.delete(comment)
+    db.commit()
+    return {"status": "success", "message": "댓글이 삭제되었습니다."}
+
+
 @app.get("/health")
 def health_check():
     return {"status": "ok", "service": "childcare-program-notifier"}
+
 
