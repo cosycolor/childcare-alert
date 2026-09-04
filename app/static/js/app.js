@@ -174,10 +174,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     applyFilters();
 
                     if (filterType === 'category' && chipBtn.getAttribute('data-value') === '백화점/마트 문센') {
-                        const guideEl = document.getElementById('culture-center-guide');
-                        if (guideEl) {
-                            guideEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
+                        setTimeout(() => {
+                            const guideEl = document.getElementById('culture-center-guide');
+                            if (guideEl) {
+                                guideEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        }, 50);
                     }
                 }
             });
@@ -687,6 +689,47 @@ document.addEventListener('DOMContentLoaded', () => {
                 elements.paginationContainer.style.display = 'none';
                 elements.paginationContainer.innerHTML = '';
             }
+
+            const titleEl = document.getElementById('empty-state-title');
+            const descEl = document.getElementById('empty-state-desc');
+            const actionsEl = document.getElementById('empty-state-actions');
+
+            if (state.filters.category === '백화점/마트 문센') {
+                if (titleEl) titleEl.textContent = '🛍️ 백화점 & 대형마트 문화센터 공식 수강신청 안내';
+                if (descEl) descEl.textContent = '백화점/마트 문화센터 강좌는 각 기관 공식 웹사이트에서 온라인 수강신청이 진행됩니다. 아래 바로가기 카드를 통해 원하시는 지점으로 이동해주세요!';
+                if (actionsEl) {
+                    actionsEl.innerHTML = `
+                        <button id="btn-scroll-culture" class="btn btn-primary btn-sm">
+                            <i data-lucide="arrow-down" class="icon-sm"></i> 공식 수강신청 바로가기 보기
+                        </button>
+                        <button id="btn-reset-filters" class="btn btn-outline btn-sm">
+                            <i data-lucide="rotate-ccw" class="icon-sm"></i> 전체 필터 초기화
+                        </button>
+                    `;
+                    const btnScroll = document.getElementById('btn-scroll-culture');
+                    if (btnScroll) {
+                        btnScroll.addEventListener('click', () => {
+                            const guideEl = document.getElementById('culture-center-guide');
+                            if (guideEl) guideEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        });
+                    }
+                    const btnReset = actionsEl.querySelector('#btn-reset-filters');
+                    if (btnReset) btnReset.addEventListener('click', resetFilters);
+                }
+            } else {
+                if (titleEl) titleEl.textContent = '해당 조건에 맞는 프로그램이 없습니다';
+                if (descEl) descEl.textContent = '필터 조건을 초기화하거나 다른 검색어로 검색해보세요.';
+                if (actionsEl) {
+                    actionsEl.innerHTML = `
+                        <button id="btn-reset-filters" class="btn btn-primary btn-sm">
+                            <i data-lucide="rotate-ccw" class="icon-sm"></i> 필터 초기화
+                        </button>
+                    `;
+                    const btnReset = actionsEl.querySelector('#btn-reset-filters');
+                    if (btnReset) btnReset.addEventListener('click', resetFilters);
+                }
+            }
+            if (window.lucide) window.lucide.createIcons();
             return;
         }
 

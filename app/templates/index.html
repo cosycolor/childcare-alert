@@ -263,14 +263,16 @@
 
                 <!-- 검색 결과 없음 상태 -->
                 <div class="empty-state" id="empty-state" style="display: none;">
-                    <div class="empty-icon">
+                    <div class="empty-icon" id="empty-state-icon">
                         <i data-lucide="search-x" class="icon-empty"></i>
                     </div>
-                    <h3>해당 조건에 맞는 프로그램이 없습니다</h3>
-                    <p>필터 조건을 초기화하거나 다른 검색어로 검색해보세요.</p>
-                    <button id="btn-reset-filters" class="btn btn-primary btn-sm">
-                        <i data-lucide="rotate-ccw" class="icon-sm"></i> 필터 초기화
-                    </button>
+                    <h3 id="empty-state-title">해당 조건에 맞는 프로그램이 없습니다</h3>
+                    <p id="empty-state-desc">필터 조건을 초기화하거나 다른 검색어로 검색해보세요.</p>
+                    <div id="empty-state-actions" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                        <button id="btn-reset-filters" class="btn btn-primary btn-sm">
+                            <i data-lucide="rotate-ccw" class="icon-sm"></i> 필터 초기화
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -299,6 +301,8 @@
                         <!-- 캘린더 일자 칸들이 JS로 생성됩니다 -->
                     </div>
                 </div>
+            </section>
+
             <!-- 백화점 / 대형마트 문화센터 공식 수강신청 바로가기 섹션 -->
             <section class="culture-center-section" id="culture-center-guide">
                 <div class="culture-center-header">
