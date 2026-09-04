@@ -27,7 +27,8 @@ ENV/
 env.bak/
 venv.bak/
 
-# SQLite Database (optional: exclude local test db)
+# SQLite Database (exclude local db from git tracking)
+*.db
 *.db-journal
 *.sqlite3
 
